@@ -1,0 +1,145 @@
+/* Login Page Specific Styles */
+
+.login-page {
+    min-height: 100vh;
+    background: linear-gradient(to bottom right,
+            var(--gradient-from-cream),
+            var(--gradient-via-sage),
+            var(--gradient-to-green));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-md);
+}
+
+.login-container {
+    width: 100%;
+    max-width: 28rem;
+}
+
+/* Header */
+.login-header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.login-title {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-bold);
+    color: var(--forest);
+    margin-bottom: var(--spacing-sm);
+}
+
+.login-subtitle {
+    color: rgba(6, 78, 59, 0.7);
+}
+
+/* Login Card */
+.login-card {
+    padding: var(--spacing-xl);
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+/* Remember Me & Forgot Password */
+.login-options {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.login-remember {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    cursor: pointer;
+}
+
+.login-remember-label {
+    font-size: var(--font-size-sm);
+    color: rgba(6, 78, 59, 0.7);
+    cursor: pointer;
+}
+
+.login-forgot-link {
+    font-size: var(--font-size-sm);
+    color: var(--green);
+    text-decoration: none;
+    transition: color var(--transition-base) var(--transition-smooth);
+}
+
+.login-forgot-link:hover {
+    color: var(--forest);
+}
+
+/* Divider */
+.login-divider {
+    position: relative;
+    margin: var(--spacing-lg) 0;
+}
+
+.login-divider-line {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+}
+
+.login-divider-border {
+    width: 100%;
+    border-top: 1px solid rgba(6, 78, 59, 0.2);
+}
+
+.login-divider-text {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    font-size: var(--font-size-sm);
+}
+
+.login-divider-text span {
+    padding: 0 var(--spacing-md);
+    background: var(--glass-bg-subtle);
+    color: rgba(6, 78, 59, 0.7);
+}
+
+/* Social Login */
+.login-social-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+}
+
+.login-social-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+}
+
+.login-social-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+/* Footer */
+.login-footer {
+    text-align: center;
+    margin-top: var(--spacing-lg);
+    color: rgba(6, 78, 59, 0.7);
+}
+
+.login-footer-link {
+    color: var(--green);
+    font-weight: var(--font-medium);
+    text-decoration: none;
+    transition: color var(--transition-base) var(--transition-smooth);
+}
+
+.login-footer-link:hover {
+    color: var(--forest);
+}

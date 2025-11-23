@@ -1,0 +1,223 @@
+/* Carousel Component Styles */
+
+.carousel {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border-radius: var(--radius-3xl);
+    /* Added padding to container instead of here */
+}
+
+.carousel-container {
+    position: relative;
+    width: 100%;
+    height: 600px;
+    max-width: 1400px;
+    /* Constrain width */
+    margin: 0 auto;
+    /* Center horizontally */
+    padding: 4rem 2rem 2rem;
+    /* Add padding around the carousel */
+}
+
+.carousel-slides {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-3xl);
+    /* Rounded corners for the slides container */
+    overflow: hidden;
+    /* Ensure images don't overflow rounded corners */
+    box-shadow: var(--shadow-xl);
+    /* Add shadow for depth */
+}
+
+.carousel-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity var(--transition-slow) var(--transition-smooth);
+    pointer-events: none;
+}
+
+.carousel-slide.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.carousel-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Carousel Overlay */
+.carousel-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    padding: 2rem 6rem;
+    /* Increased padding */
+}
+
+.carousel-overlay-gradient-dark {
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.6), transparent);
+}
+
+.carousel-overlay-gradient-blue {
+    background: linear-gradient(to right, rgba(30, 58, 138, 0.8), transparent);
+}
+
+.carousel-overlay-gradient-soft {
+    background: linear-gradient(to right, rgba(96, 165, 250, 0.8), transparent);
+}
+
+.carousel-content {
+    max-width: 42rem;
+    color: white;
+    animation: fade-in var(--transition-slow) var(--transition-smooth);
+}
+
+.carousel-title {
+    font-size: 4rem;
+    /* Increased font size */
+    font-weight: 800;
+    /* Bolder font */
+    line-height: 1.1;
+    margin-bottom: var(--spacing-lg);
+}
+
+.carousel-description {
+    font-size: 1.25rem;
+    margin-bottom: 2.5rem;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+.carousel-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+/* Carousel Navigation Dots */
+.carousel-dots {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.5rem;
+    z-index: var(--z-dropdown);
+}
+
+.carousel-dot {
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.4);
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-base) var(--transition-smooth);
+    padding: 0;
+}
+
+.carousel-dot:hover {
+    background: rgba(255, 255, 255, 0.75);
+}
+
+.carousel-dot.active {
+    background: #5c7cfa;
+    /* Blue active dot */
+    width: 2rem;
+}
+
+/* Carousel Arrow Navigation */
+.carousel-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    /* White background */
+    border: none;
+    border-radius: var(--radius-full);
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-base) var(--transition-smooth);
+    z-index: var(--z-dropdown);
+    color: #1e3a8a;
+    /* Dark blue icon color */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.carousel-arrow:hover {
+    background: white;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.carousel-arrow-prev {
+    left: 3rem;
+    /* Adjusted position */
+}
+
+.carousel-arrow-next {
+    right: 3rem;
+    /* Adjusted position */
+}
+
+.carousel-arrow svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+    .carousel-container {
+        height: 500px;
+        padding: 1rem;
+    }
+
+    .carousel-overlay {
+        padding: 1.5rem;
+    }
+
+    .carousel-title {
+        font-size: 2.5rem;
+    }
+
+    .carousel-description {
+        font-size: 1rem;
+    }
+
+    .carousel-actions {
+        flex-direction: column;
+    }
+
+    .carousel-arrow {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+
+    .carousel-arrow-prev {
+        left: 1.5rem;
+    }
+
+    .carousel-arrow-next {
+        right: 1.5rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .carousel-actions {
+        flex-direction: row;
+    }
+}
