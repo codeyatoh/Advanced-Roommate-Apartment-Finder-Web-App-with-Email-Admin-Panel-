@@ -23,6 +23,7 @@
     require_once __DIR__ . '/../../models/Report.php';
     require_once __DIR__ . '/../../models/Message.php';
     
+    
     $userModel = new User();
     $listingModel = new Listing();
     $reportModel = new Report();
@@ -32,6 +33,90 @@
     $userStats = $userModel->getStats();
     $listingStats = $listingModel->getStats();
     $reportStats = $reportModel->getStats();
+    
+    // Get recent activity from database (last 5 activities)
+    // Combining different types of activities
+    $recentActivities = [];
+    
+    // Get recent users (last 5)
+    $recentUsers = $userModel->getAll(['limit' => 3]);
+    foreach ($recentUsers as $ru) {
+        $recentActivities[] = [
+            'user' => $ru['first_name'] . ' ' . $ru['last_name'],
+            'action' => 'joined the platform',
+            'time' => time_ago($ru['created_at']),
+            'icon' => 'user-plus'
+        ];
+    }
+    
+    // Get recent listings (last 2)
+    $recentListings = $listingModel->getAll(['limit' => 2]);
+    foreach ($recentListings as $rl) {
+        $landlord = $userModel->getById($rl['landlord_id']);
+        $landlordName = $landlord ? $landlord['first_name'] . ' ' . $landlord['last_name'] : 'Unknown';
+        $recentActivities[] = [
+            'user' => $landlordName,
+            'action' => 'created a new listing',
+            'time' => time_ago($rl['created_at']),
+            'icon' => 'home'
+        ];
+    }
+    
+    // Sort by timestamp and limit to 5
+    usort($recentActivities, function($a, $b) {
+        return strtotime($b['time']) - strtotime($a['time']);
+    });
+    $recentActivities = array_slice($recentActivities, 0, 5);
+    
+    // Get pending actions
+    $pendingActions = [];
+    
+    // Get pending listings (status = pending)
+    $pendingListings = $listingModel->getAll(['where' => "availability_status = 'pending'", 'limit' => 1]);
+    foreach ($pendingListings as $pl) {
+        $landlord = $userModel->getById($pl['landlord_id']);
+        $landlordName = $landlord ? $landlord['first_name'] . ' ' . $landlord['last_name'] : 'Unknown';
+        $pendingActions[] = [
+            'id' => $pl['listing_id'],
+            'type' => 'Listing Approval',
+            'description' => $pl['title'] . ' - ' . $landlordName,
+            'priority' => 'high'
+        ];
+    }
+    
+    // Get unverified users (is_verified = 0)
+    $unverifiedUsers = $userModel->getAll(['where' => "is_verified = 0 AND role = 'landlord'", 'limit' => 1]);
+    foreach ($unverifiedUsers as $uu) {
+        $pendingActions[] = [
+            'id' => $uu['user_id'],
+            'type' => 'User Verification',
+            'description' => $uu['first_name'] . ' ' . $uu['last_name'] . ' - Landlord Account',
+            'priority' => 'medium'
+        ];
+    }
+    
+    // Get pending reports
+    $pendingReports = $reportModel->getAll(['where' => "status = 'pending'", 'limit' => 1]);
+    foreach ($pendingReports as $pr) {
+        $pendingActions[] = [
+            'id' => $pr['report_id'],
+            'type' => 'Complaint Review',
+            'description' => 'Report #' . $pr['report_id'] . ' - ' . $pr['reason'],
+            'priority' => 'high'
+        ];
+    }
+    
+    // Helper function for time ago
+    function time_ago($datetime) {
+        $time = strtotime($datetime);
+        $now = time();
+        $diff = $now - $time;
+        
+        if ($diff < 60) return 'just now';
+        if ($diff < 3600) return floor($diff/60) . ' minute' . (floor($diff/60) > 1 ? 's' : '') . ' ago';
+        if ($diff < 86400) return floor($diff/3600) . ' hour' . (floor($diff/3600) > 1 ? 's' : '') . ' ago';
+        return floor($diff/86400) . ' day' . (floor($diff/86400) > 1 ? 's' : '') . ' ago';
+    }
     ?>
     <div class="admin-page">
         <?php include __DIR__ . '/../includes/navbar.php'; ?>
@@ -109,13 +194,12 @@
                     <h3 style="font-size: 1.125rem; font-weight: 700; color: #000; margin-bottom: 1rem;">Recent Activity</h3>
                     <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                         <?php
-                        $recentActivities = [
-                            ['user' => 'John Doe', 'action' => 'created a new listing', 'time' => '5 minutes ago', 'icon' => 'home'],
-                            ['user' => 'Jane Smith', 'action' => 'verified their account', 'time' => '15 minutes ago', 'icon' => 'user-check'],
-                            ['user' => 'Mike Johnson', 'action' => 'sent an inquiry', 'time' => '1 hour ago', 'icon' => 'message-square'],
-                            ['user' => 'Sarah Williams', 'action' => 'booked an appointment', 'time' => '2 hours ago', 'icon' => 'calendar'],
-                            ['user' => 'Tom Brown', 'action' => 'updated their profile', 'time' => '3 hours ago', 'icon' => 'user'],
-                        ];
+                        // Activities already loaded from database at top of file
+                        if (empty($recentActivities)):
+                        ?>
+                        <p style="text-align: center; color: rgba(0,0,0,0.5); padding: 2rem;">No recent activity</p>
+                        <?php
+                        endif;
 
                         foreach ($recentActivities as $activity): 
                         ?>
@@ -138,15 +222,16 @@
                 <div class="glass-card" style="padding: 1.25rem;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
                         <h2 style="font-size: 1.25rem; font-weight: 700; color: #000;">Pending Actions</h2>
-                        <span style="padding: 0.25rem 0.75rem; background-color: #fee2e2; color: #b91c1c; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">3 items</span>
+                        <span style="padding: 0.25rem 0.75rem; background-color: #fee2e2; color: #b91c1c; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;"><?php echo count($pendingActions); ?> items</span>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                         <?php
-                        $pendingActions = [
-                            ['id' => 1, 'type' => 'Listing Approval', 'description' => 'Modern Studio Downtown - David Martinez', 'priority' => 'high'],
-                            ['id' => 2, 'type' => 'User Verification', 'description' => 'Sarah Johnson - Landlord Account', 'priority' => 'medium'],
-                            ['id' => 3, 'type' => 'Complaint Review', 'description' => 'Report #1234 - Inappropriate Content', 'priority' => 'high'],
-                        ];
+                        // Pending actions already loaded from database at top of file
+                        if (empty($pendingActions)):
+                        ?>
+                        <p style="text-align: center; color: rgba(0,0,0,0.5); padding: 2rem;">No pending actions</p>
+                        <?php
+                        endif;
 
                         foreach ($pendingActions as $action): 
                             $priorityClass = $action['priority'] === 'high' ? 'priority-high' : 'priority-medium';
