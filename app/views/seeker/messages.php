@@ -102,9 +102,9 @@ if ($selectedConversationId) {
                             <div class="conversations-list">
                                 <?php foreach ($conversations as $conv): 
                                     $isActive = $conv['other_user_id'] == $selectedConversationId;
-                                    $userName = htmlspecialchars($conv['first_name'] . ' ' . $conv['last_name']);
-                                    $avatar = !empty($conv['profile_photo']) 
-                                        ? htmlspecialchars($conv['profile_photo'])
+                                    $userName = htmlspecialchars($conv['other_user_name']);
+                                    $avatar = !empty($conv['other_user_photo']) 
+                                        ? htmlspecialchars($conv['other_user_photo'])
                                         : 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=10b981&color=fff';
                                     
                                     // Calculate time ago
