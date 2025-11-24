@@ -38,15 +38,25 @@ $inquiries = $messageModel->getLandlordInquiries($landlordId);
 foreach ($inquiries as &$inquiry) {
     // Get user details
     $user = $userModel->getById($inquiry['other_user_id']);
-    $inquiry['tenant'] = $user['first_name'] . ' ' . $user['last_name'];
-    $inquiry['email'] = $user['email'] ?? '';
-    $inquiry['phone'] = $user['phone'] ?? '';
-    $inquiry['avatar'] = $user['profile_photo'] ?? 'https://ui-avatars.com/api/?name=' . urlencode($inquiry['tenant']) . '&background=10b981&color=fff';
+    
+    // Check if user exists
+    if ($user && is_array($user)) {
+        $inquiry['tenant'] = $user['first_name'] . ' ' . $user['last_name'];
+        $inquiry['email'] = $user['email'] ?? '';
+        $inquiry['phone'] = $user['phone'] ?? '';
+        $inquiry['avatar'] = $user['profile_photo'] ?? 'https://ui-avatars.com/api/?name=' . urlencode($inquiry['tenant']) . '&background=10b981&color=fff';
+    } else {
+        // User not found - use defaults
+        $inquiry['tenant'] = 'Deleted User';
+        $inquiry['email'] = '';
+        $inquiry['phone'] = '';
+        $inquiry['avatar'] = 'https://ui-avatars.com/api/?name=DeletedUser&background=ef4444&color=fff';
+    }
     
     // Get listing details
     if (!empty($inquiry['listing_id'])) {
         $listing = $listingModel->getById($inquiry['listing_id']);
-        $inquiry['property'] = $listing['title'] ?? 'Deleted Listing';
+        $inquiry['property'] = ($listing && is_array($listing)) ? ($listing['title'] ?? 'Deleted Listing') : 'Deleted Listing';
     } else {
         $inquiry['property'] = 'General Inquiry';
     }
