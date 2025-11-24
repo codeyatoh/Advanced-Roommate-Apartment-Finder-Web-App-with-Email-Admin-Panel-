@@ -38,72 +38,109 @@
     // Combining different types of activities
     $recentActivities = [];
     
-    // Get recent users (last 5)
-    $recentUsers = $userModel->getAll(['limit' => 3]);
-    foreach ($recentUsers as $ru) {
-        $recentActivities[] = [
-            'user' => $ru['first_name'] . ' ' . $ru['last_name'],
-            'action' => 'joined the platform',
-            'time' => time_ago($ru['created_at']),
-            'icon' => 'user-plus'
-        ];
+    try {
+        // Get recent users (last 3) - using direct SQL
+        $sql = "SELECT * FROM users ORDER BY created_at DESC LIMIT 3";
+        $stmt = $userModel->conn->prepare($sql);
+        $stmt->execute();
+        $recentUsers = $stmt->fetchAll();
+        
+        if ($recentUsers && is_array($recentUsers)) {
+            foreach ($recentUsers as $ru) {
+                $recentActivities[] = [
+                    'user' => $ru['first_name'] . ' ' . $ru['last_name'],
+                    'action' => 'joined the platform',
+                    'time' => time_ago($ru['created_at']),
+                    'icon' => 'user-plus'
+                ];
+            }
+        }
+        
+        // Get recent listings (last 2)
+        $sql = "SELECT * FROM listings ORDER BY created_at DESC LIMIT 2";
+        $stmt = $listingModel->conn->prepare($sql);
+        $stmt->execute();
+        $recentListings = $stmt->fetchAll();
+        
+        if ($recentListings && is_array($recentListings)) {
+            foreach ($recentListings as $rl) {
+                $landlord = $userModel->getById($rl['landlord_id']);
+                $landlordName = ($landlord && is_array($landlord)) ? $landlord['first_name'] . ' ' . $landlord['last_name'] : 'Unknown';
+                $recentActivities[] = [
+                    'user' => $landlordName,
+                    'action' => 'created a new listing',
+                    'time' => time_ago($rl['created_at']),
+                    'icon' => 'home'
+                ];
+            }
+        }
+        
+        // Limit to 5 most recent
+        $recentActivities = array_slice($recentActivities, 0, 5);
+    } catch (Exception $e) {
+        error_log("Error fetching recent activities: " . $e->getMessage());
+        $recentActivities = [];
     }
-    
-    // Get recent listings (last 2)
-    $recentListings = $listingModel->getAll(['limit' => 2]);
-    foreach ($recentListings as $rl) {
-        $landlord = $userModel->getById($rl['landlord_id']);
-        $landlordName = $landlord ? $landlord['first_name'] . ' ' . $landlord['last_name'] : 'Unknown';
-        $recentActivities[] = [
-            'user' => $landlordName,
-            'action' => 'created a new listing',
-            'time' => time_ago($rl['created_at']),
-            'icon' => 'home'
-        ];
-    }
-    
-    // Sort by timestamp and limit to 5
-    usort($recentActivities, function($a, $b) {
-        return strtotime($b['time']) - strtotime($a['time']);
-    });
-    $recentActivities = array_slice($recentActivities, 0, 5);
     
     // Get pending actions
     $pendingActions = [];
     
-    // Get pending listings (status = pending)
-    $pendingListings = $listingModel->getAll(['where' => "availability_status = 'pending'", 'limit' => 1]);
-    foreach ($pendingListings as $pl) {
-        $landlord = $userModel->getById($pl['landlord_id']);
-        $landlordName = $landlord ? $landlord['first_name'] . ' ' . $landlord['last_name'] : 'Unknown';
-        $pendingActions[] = [
-            'id' => $pl['listing_id'],
-            'type' => 'Listing Approval',
-            'description' => $pl['title'] . ' - ' . $landlordName,
-            'priority' => 'high'
-        ];
-    }
-    
-    // Get unverified users (is_verified = 0)
-    $unverifiedUsers = $userModel->getAll(['where' => "is_verified = 0 AND role = 'landlord'", 'limit' => 1]);
-    foreach ($unverifiedUsers as $uu) {
-        $pendingActions[] = [
-            'id' => $uu['user_id'],
-            'type' => 'User Verification',
-            'description' => $uu['first_name'] . ' ' . $uu['last_name'] . ' - Landlord Account',
-            'priority' => 'medium'
-        ];
-    }
-    
-    // Get pending reports
-    $pendingReports = $reportModel->getAll(['where' => "status = 'pending'", 'limit' => 1]);
-    foreach ($pendingReports as $pr) {
-        $pendingActions[] = [
-            'id' => $pr['report_id'],
-            'type' => 'Complaint Review',
-            'description' => 'Report #' . $pr['report_id'] . ' - ' . $pr['reason'],
-            'priority' => 'high'
-        ];
+    try {
+        // Get pending listings (status = pending)
+        $sql = "SELECT * FROM listings WHERE availability_status = 'pending' LIMIT 1";
+        $stmt = $listingModel->conn->prepare($sql);
+        $stmt->execute();
+        $pendingListings = $stmt->fetchAll();
+        
+        if ($pendingListings && is_array($pendingListings)) {
+            foreach ($pendingListings as $pl) {
+                $landlord = $userModel->getById($pl['landlord_id']);
+                $landlordName = ($landlord && is_array($landlord)) ? $landlord['first_name'] . ' ' . $landlord['last_name'] : 'Unknown';
+                $pendingActions[] = [
+                    'id' => $pl['listing_id'],
+                    'type' => 'Listing Approval',
+                    'description' => $pl['title'] . ' - ' . $landlordName,
+                    'priority' => 'high'
+                ];
+            }
+        }
+        
+        // Get unverified users (is_verified = 0)
+        $sql = "SELECT * FROM users WHERE is_verified = 0 AND role = 'landlord' LIMIT 1";
+        $stmt = $userModel->conn->prepare($sql);
+        $stmt->execute();
+        $unverifiedUsers = $stmt->fetchAll();
+        
+        if ($unverifiedUsers && is_array($unverifiedUsers)) {
+            foreach ($unverifiedUsers as $uu) {
+                $pendingActions[] = [
+                    'id' => $uu['user_id'],
+                    'type' => 'User Verification',
+                    'description' => $uu['first_name'] . ' ' . $uu['last_name'] . ' - Landlord Account',
+                    'priority' => 'medium'
+                ];
+            }
+        }
+        
+        // Get pending reports
+        $sql = "SELECT * FROM reports WHERE status = 'pending' LIMIT 1";
+        $stmt = $reportModel->conn->prepare($sql);
+        $stmt->execute();
+        $pendingReports = $stmt->fetchAll();
+        
+        if ($pendingReports && is_array($pendingReports)) {
+            foreach ($pendingReports as $pr) {
+                $pendingActions[] = [
+                    'id' => $pr['report_id'],
+                    'type' => 'Complaint Review',
+                    'description' => 'Report #' . $pr['report_id'] . ' - ' . ($pr['reason'] ?? 'No reason provided'),
+                    'priority' => 'high'
+                ];
+            }
+        }
+    } catch (Exception $e) {
+        error_log("Error fetching pending actions: " . $e->getMessage());
+        $pendingActions = [];
     }
     
     // Helper function for time ago
