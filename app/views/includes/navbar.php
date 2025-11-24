@@ -20,7 +20,7 @@ $profile_link = '#';
 if ($role === 'room_seeker') {
     $profile_link = '/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/seeker/profile.php';
 } elseif ($role === 'landlord') {
-    $profile_link = '/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/seeker/profile.php'; // Using seeker profile for now
+    $profile_link = '/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/landlord/profile.php';
 } elseif ($role === 'admin') {
     $profile_link = '#'; // Placeholder until admin profile is created
 }
