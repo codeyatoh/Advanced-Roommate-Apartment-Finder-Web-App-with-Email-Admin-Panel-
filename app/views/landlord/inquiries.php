@@ -63,6 +63,8 @@ foreach ($inquiries as &$inquiry) {
         $inquiry['time'] = max(1, $diff->i) . ' minute' . ($diff->i > 1 ? 's' : '') . ' ago';
     }
     
+    // Add additional fields for compatibility
+    $inquiry['id'] = $inquiry['other_user_id'] . '_' . ($inquiry['listing_id'] ?? '0'); // Unique ID
     $inquiry['message'] = $inquiry['last_message'];
     $inquiry['unread'] = $inquiry['unread_count'] > 0;
 }
