@@ -126,26 +126,21 @@ class Message extends BaseModel {
     }
 
     /**
-     * Get inquiries for landlord
+     * Get inquiries for landlord (grouped by conversation)
      * @param int $landlordId
      * @return array
      */
     public function getLandlordInquiries($landlordId) {
         $sql = "SELECT 
-                    m.message_id,
-                    m.sender_id,
-                    CONCAT(u.first_name, ' ', u.last_name) as tenant_name,
-                    u.profile_photo as tenant_photo,
+                    m.sender_id as other_user_id,
                     m.listing_id,
-                    l.title as property_title,
-                    m.message_content,
-                    m.is_read,
-                    m.created_at
+                    MAX(m.message_content) as last_message,
+                    MAX(m.created_at) as last_message_time,
+                    SUM(CASE WHEN m.is_read = 0 THEN 1 ELSE 0 END) as unread_count
                 FROM {$this->table} m
-                INNER JOIN users u ON m.sender_id = u.user_id
-                LEFT JOIN listings l ON m.listing_id = l.listing_id
                 WHERE m.receiver_id = :landlord_id
-                ORDER BY m.created_at DESC";
+                GROUP BY m.sender_id, m.listing_id
+                ORDER BY MAX(m.created_at) DESC";
         
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':landlord_id', $landlordId, PDO::PARAM_INT);
