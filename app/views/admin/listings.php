@@ -13,6 +13,63 @@
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/admin.module.css">
 </head>
 <body>
+    <?php
+    // Start session and load models
+    session_start();
+    require_once __DIR__ . '/../../models/Listing.php';
+    require_once __DIR__ . '/../../models/User.php';
+    
+    $listingModel = new Listing();
+    $userModel = new User();
+    
+    // Get all listings from database with landlord info
+    $sql = "SELECT l.*, 
+                u.first_name, u.last_name, u.profile_photo,
+                (SELECT image_url FROM listing_images WHERE listing_id = l.listing_id AND is_primary = 1 LIMIT 1) as primary_image,
+                (SELECT COUNT(*) FROM listing_views WHERE listing_id = l.listing_id) as view_count
+            FROM listings l
+            LEFT JOIN users u ON l.landlord_id = u.user_id
+            ORDER BY l.created_at DESC";
+    $stmt = $listingModel->getConnection()->prepare($sql);
+    $stmt->execute();
+    $listingsData = $stmt->fetchAll();
+    
+    // Helper function for time ago
+    function time_elapsed($datetime) {
+        $time = strtotime($datetime);
+        $now = time();
+        $diff = $now - $time;
+        
+        if ($diff < 60) return 'just now';
+        if ($diff < 3600) {
+            $mins = floor($diff/60);
+            return $mins . ' ' . ($mins == 1 ? 'hour' : 'hours') . ' ago';
+        }
+        if ($diff < 86400) {
+            $hours = floor($diff/3600);
+            return $hours . ' ' . ($hours == 1 ? 'hour' : 'hours') . ' ago';
+        }
+        $days = floor($diff/86400);
+        return $days . ' ' . ($days == 1 ? 'day' : 'days') . ' ago';
+    }
+    
+    // Format listing data
+    $listings = [];
+    foreach ($listingsData as $listingData) {
+        $listings[] = [
+            'id' => $listingData['listing_id'],
+            'image' => $listingData['primary_image'] ?? 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
+            'title' => $listingData['title'],
+            'landlord' => $listingData['first_name'] . ' ' . $listingData['last_name'],
+            'landlordAvatar' => $listingData['profile_photo'] ?? 'https://ui-avatars.com/api/?name=' . urlencode($listingData['first_name'] . ' ' . $listingData['last_name']) . '&background=3b82f6&color=fff',
+            'location' => $listingData['location'],
+            'price' => $listingData['price'],
+            'status' => $listingData['availability_status'], // pending, available (approved), occupied (rejected for this view)
+            'submittedDate' => time_elapsed($listingData['created_at']),
+            'views' => $listingData['view_count'] ?? 0,
+        ];
+    }
+    ?>
     <div class="admin-page">
         <?php include __DIR__ . '/../includes/navbar.php'; ?>
 
@@ -55,63 +112,24 @@
             <!-- Listings Grid -->
             <div class="listings-grid">
                 <?php
-                $listings = [
-                    [
-                        'id' => 1,
-                        'image' => 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
-                        'title' => 'Modern Studio Downtown',
-                        'landlord' => 'David Martinez',
-                        'landlordAvatar' => 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
-                        'location' => 'San Francisco, CA',
-                        'price' => 1200,
-                        'status' => 'pending',
-                        'submittedDate' => '2 hours ago',
-                        'views' => 0,
-                    ],
-                    [
-                        'id' => 2,
-                        'image' => 'https://images.unsplash.com/photo-1502672260066-6bc2c9f0e6c7?w=800',
-                        'title' => 'Cozy Apartment',
-                        'landlord' => 'Lisa Wong',
-                        'landlordAvatar' => 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
-                        'location' => 'Oakland, CA',
-                        'price' => 950,
-                        'status' => 'approved',
-                        'submittedDate' => '1 day ago',
-                        'views' => 45,
-                    ],
-                    [
-                        'id' => 3,
-                        'image' => 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800',
-                        'title' => 'Spacious Loft',
-                        'landlord' => 'John Smith',
-                        'landlordAvatar' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-                        'location' => 'Berkeley, CA',
-                        'price' => 1400,
-                        'status' => 'pending',
-                        'submittedDate' => '5 hours ago',
-                        'views' => 0,
-                    ],
-                    [
-                        'id' => 4,
-                        'image' => 'https://images.unsplash.com/photo-1502672023488-70e25813eb80?w=800',
-                        'title' => 'Bright Room in House',
-                        'landlord' => 'Maria Garcia',
-                        'landlordAvatar' => 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
-                        'location' => 'San Jose, CA',
-                        'price' => 850,
-                        'status' => 'rejected',
-                        'submittedDate' => '3 days ago',
-                        'views' => 12,
-                    ],
-                ];
-
+                // Listings already loaded from database above
                 foreach ($listings as $index => $listing): 
                     $statusClass = '';
+                    // Map database status to display status
+                    $displayStatus = $listing['status'];
                     switch ($listing['status']) {
-                        case 'approved': $statusClass = 'status-success'; break;
-                        case 'pending': $statusClass = 'status-warning'; break;
-                        case 'rejected': $statusClass = 'status-error'; break;
+                        case 'available': 
+                            $statusClass = 'status-success'; 
+                            $displayStatus = 'approved';
+                            break;
+                        case 'pending': 
+                            $statusClass = 'status-warning';
+                            $displayStatus = 'pending';
+                            break;
+                        case 'occupied': 
+                            $statusClass = 'status-error';
+                            $displayStatus = 'rejected';
+                            break;
                         default: $statusClass = 'status-neutral';
                     }
                 ?>
