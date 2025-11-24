@@ -28,11 +28,11 @@
             <div style="max-width: 1280px; margin: 0 auto;">
                 <!-- Header -->
                 <div style="margin-bottom: 2rem; animation: slideUp 0.3s ease-out;">
-                    <h1 style="font-size: 1.875rem; font-weight: 700; color: #000; margin-bottom: 0.5rem;">
+                    <h1 style="font-size: 1.875rem; font-weight: 700; color: #000000; margin-bottom: 0.5rem;">
                         Browse Rooms
                     </h1>
                     <p style="color: rgba(0, 0, 0, 0.6);">
-                        Find your perfect room from <span style="font-weight: 600; color: #000;">6 available listings</span>
+                        Find your perfect room from <span style="font-weight: 600; color: #000000;">6 available listings</span>
                     </p>
                 </div>
 
@@ -46,15 +46,86 @@
                                     <i data-lucide="map-pin" class="form-input-icon"></i>
                                     <input type="text" class="form-input" placeholder="Location..." style="padding-left: 3rem;">
                                 </div>
-                                <button class="btn btn-glass btn-md">
+                                <button class="btn btn-glass btn-md" id="filterToggleBtn">
                                     <i data-lucide="sliders-horizontal" class="btn-icon"></i>
                                     Filters
                                 </button>
                                 <button class="btn btn-primary btn-md">Search</button>
                             </div>
+
+                            <!-- Expanded Filters -->
+                            <div id="filterOptions" style="display: none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(0,0,0,0.1);">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                                    <!-- Price Range -->
+                                    <div class="form-group">
+                                        <label class="form-label">Price Range</label>
+                                        <div style="display: flex; gap: 0.5rem;">
+                                            <div class="form-input-wrapper">
+                                                <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: rgba(0,0,0,0.5); font-weight: 500;">$</span>
+                                                <input type="number" class="form-input" placeholder="Min" style="padding-left: 2rem;">
+                                            </div>
+                                            <div class="form-input-wrapper">
+                                                <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: rgba(0,0,0,0.5); font-weight: 500;">$</span>
+                                                <input type="number" class="form-input" placeholder="Max" style="padding-left: 2rem;">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Bedrooms -->
+                                    <div class="form-group">
+                                        <label class="form-label">Bedrooms</label>
+                                        <div class="form-input-wrapper">
+                                            <select class="form-input" style="appearance: none; cursor: pointer;">
+                                                <option value="">Any</option>
+                                                <option value="1">1 Bedroom</option>
+                                                <option value="2">2 Bedrooms</option>
+                                                <option value="3">3+ Bedrooms</option>
+                                            </select>
+                                            <i data-lucide="chevron-down" class="form-input-icon" style="right: 1rem; left: auto; pointer-events: none;"></i>
+                                        </div>
+                                    </div>
+
+                                    <!-- Roommates -->
+                                    <div class="form-group">
+                                        <label class="form-label">Roommates</label>
+                                        <div class="form-input-wrapper">
+                                            <select class="form-input" style="appearance: none; cursor: pointer;">
+                                                <option value="">Any</option>
+                                                <option value="0">No Roommates</option>
+                                                <option value="1">1 Roommate</option>
+                                                <option value="2">2+ Roommates</option>
+                                            </select>
+                                            <i data-lucide="chevron-down" class="form-input-icon" style="right: 1rem; left: auto; pointer-events: none;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const filterToggleBtn = document.getElementById('filterToggleBtn');
+                        const filterOptions = document.getElementById('filterOptions');
+
+                        if (filterToggleBtn && filterOptions) {
+                            filterToggleBtn.addEventListener('click', () => {
+                                const isHidden = filterOptions.style.display === 'none';
+                                filterOptions.style.display = isHidden ? 'block' : 'none';
+                                
+                                // Optional: Add active state to button
+                                if (isHidden) {
+                                    filterToggleBtn.style.background = 'rgba(255, 255, 255, 0.5)';
+                                    filterToggleBtn.style.borderColor = 'var(--primary)';
+                                } else {
+                                    filterToggleBtn.style.background = '';
+                                    filterToggleBtn.style.borderColor = '';
+                                }
+                            });
+                        }
+                    });
+                </script>
 
                 <!-- Results Grid -->
                 <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;">
@@ -125,49 +196,51 @@
                     foreach ($rooms as $index => $room): 
                     ?>
                     <div style="animation: slideUp 0.3s ease-out; animation-delay: <?php echo $index * 0.05; ?>s; animation-fill-mode: both;">
-                        <div class="room-card">
-                            <!-- Image -->
-                            <div class="room-card-image-wrapper">
-                                <img src="<?php echo $room['image']; ?>" alt="<?php echo $room['title']; ?>" class="room-card-image">
-                                <button class="room-card-favorite">
-                                    <i data-lucide="heart"></i>
-                                </button>
-                                <div class="room-card-badge">Available <?php echo $room['available']; ?></div>
+                        <a href="room_details.php" style="text-decoration: none; color: inherit; display: block;">
+                            <div class="room-card">
+                                <!-- Image -->
+                                <div class="room-card-image-wrapper">
+                                    <img src="<?php echo $room['image']; ?>" alt="<?php echo $room['title']; ?>" class="room-card-image">
+                                    <button class="room-card-favorite" onclick="event.preventDefault();">
+                                        <i data-lucide="heart"></i>
+                                    </button>
+                                    <div class="room-card-badge">Available <?php echo $room['available']; ?></div>
+                                </div>
+
+                                <!-- Content -->
+                                <div class="room-card-content">
+                                    <h3 class="room-card-title"><?php echo $room['title']; ?></h3>
+                                    <div class="room-card-location">
+                                        <i data-lucide="map-pin"></i>
+                                        <?php echo $room['location']; ?>
+                                    </div>
+
+                                    <!-- Details -->
+                                    <div class="room-card-details">
+                                        <div class="room-card-detail">
+                                            <i data-lucide="bed"></i>
+                                            <?php echo $room['bedrooms']; ?> bed
+                                        </div>
+                                        <div class="room-card-detail">
+                                            <i data-lucide="bath"></i>
+                                            <?php echo $room['bathrooms']; ?> bath
+                                        </div>
+                                        <div class="room-card-detail">
+                                            <i data-lucide="users"></i>
+                                            <?php echo $room['roommates']; ?> roommates
+                                        </div>
+                                    </div>
+
+                                    <!-- Price -->
+                                    <div style="padding-top: 0.75rem; border-top: 1px solid rgba(0, 0, 0, 0.1);">
+                                        <div class="room-card-price">
+                                            <span>$<?php echo $room['price']; ?></span>
+                                            <span class="room-card-price-period">/month</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-
-                            <!-- Content -->
-                            <div class="room-card-content">
-                                <h3 class="room-card-title"><?php echo $room['title']; ?></h3>
-                                <div class="room-card-location">
-                                    <i data-lucide="map-pin"></i>
-                                    <?php echo $room['location']; ?>
-                                </div>
-
-                                <!-- Details -->
-                                <div class="room-card-details">
-                                    <div class="room-card-detail">
-                                        <i data-lucide="bed"></i>
-                                        <?php echo $room['bedrooms']; ?> bed
-                                    </div>
-                                    <div class="room-card-detail">
-                                        <i data-lucide="bath"></i>
-                                        <?php echo $room['bathrooms']; ?> bath
-                                    </div>
-                                    <div class="room-card-detail">
-                                        <i data-lucide="users"></i>
-                                        <?php echo $room['roommates']; ?> roommates
-                                    </div>
-                                </div>
-
-                                <!-- Price -->
-                                <div style="padding-top: 0.75rem; border-top: 1px solid rgba(0, 0, 0, 0.1);">
-                                    <div class="room-card-price">
-                                        <span>$<?php echo $room['price']; ?></span>
-                                        <span class="room-card-price-period">/month</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        </a>
                     </div>
                     <?php endforeach; ?>
                 </div>

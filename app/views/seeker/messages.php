@@ -14,13 +14,13 @@
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/forms.module.css">
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/messages.module.css">
 </head>
-<body style="background: white;">
-    <div style="min-height: 100vh;">
+<body>
+    <div style="min-height: 100vh; background: linear-gradient(to bottom right, var(--softBlue-20), var(--neutral), var(--deepBlue-10));">
         <?php include __DIR__ . '/../includes/navbar.php'; ?>
         <div style="padding-top: 6rem; padding-bottom: 5rem; padding-left: 1rem; padding-right: 1rem;">
             <div style="max-width: 1280px; margin: 0 auto;">
                 <div style="margin-bottom: 2rem; animation: slideUp 0.3s ease-out;">
-                    <h1 style="font-size: 1.875rem; font-weight: 700; color: #000; margin-bottom: 0.5rem;">Messages</h1>
+                    <h1 style="font-size: 1.875rem; font-weight: 700; color: #000000; margin-bottom: 0.5rem;">Messages</h1>
                     <p style="color: rgba(0, 0, 0, 0.6);">Chat with landlords and potential roommates</p>
                 </div>
 

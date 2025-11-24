@@ -27,7 +27,7 @@
             <div style="max-width: 1280px; margin: 0 auto;">
                 <!-- Header -->
                 <div style="margin-bottom: 2rem; animation: slideUp 0.3s ease-out;">
-                    <h1 style="font-size: 1.875rem; font-weight: 700; color: #000; margin-bottom: 0.5rem;">
+                    <h1 style="font-size: 1.875rem; font-weight: 700; color: #000000; margin-bottom: 0.5rem;">
                         My Appointments
                     </h1>
                     <p style="color: rgba(0, 0, 0, 0.6);">

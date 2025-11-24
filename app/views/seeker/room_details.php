@@ -57,7 +57,7 @@
                     <div style="display: flex; flex-direction: column; gap: 1.5rem;">
                         <!-- Title & Location -->
                         <div>
-                            <h1 style="font-size: 1.875rem; font-weight: 700; color: #000; margin: 0 0 0.75rem 0;">Modern Studio in Downtown</h1>
+                            <h1 style="font-size: 1.875rem; font-weight: 700; color: #000000; margin: 0 0 0.75rem 0;">Modern Studio in Downtown</h1>
                             <div style="display: flex; align-items: center; gap: 0.5rem; color: rgba(0,0,0,0.6); margin-bottom: 1rem;">
                                 <i data-lucide="map-pin" style="width: 1.25rem; height: 1.25rem;"></i>
                                 <span style="font-size: 1.125rem;">123 Market Street, San Francisco, CA 94103</span>
@@ -97,7 +97,7 @@
 
                         <!-- Description -->
                         <div class="card card-glass" style="padding: 1.5rem;">
-                            <h2 style="font-size: 1.25rem; font-weight: 700; color: #000; margin: 0 0 1rem 0;">About this room</h2>
+                            <h2 style="font-size: 1.25rem; font-weight: 700; color: #000000; margin: 0 0 1rem 0;">About this room</h2>
                             <div style="display: flex; flex-direction: column; gap: 1rem; color: rgba(0,0,0,0.7); line-height: 1.6;">
                                 <p>Beautiful modern studio apartment in the heart of downtown San Francisco. This fully furnished space features high ceilings, large windows with plenty of natural light, and contemporary finishes throughout.</p>
                                 <p>The building offers excellent amenities including a fitness center, rooftop terrace, and 24/7 security. Located within walking distance to public transportation, restaurants, cafes, and shopping centers.</p>
@@ -106,7 +106,7 @@
 
                         <!-- Amenities -->
                         <div class="card card-glass" style="padding: 1.5rem;">
-                            <h2 style="font-size: 1.25rem; font-weight: 700; color: #000; margin: 0 0 1rem 0;">Amenities & Features</h2>
+                            <h2 style="font-size: 1.25rem; font-weight: 700; color: #000000; margin: 0 0 1rem 0;">Amenities & Features</h2>
                             <div class="amenities-grid">
                                 <?php 
                                 $amenities = [
@@ -128,7 +128,7 @@
 
                         <!-- House Rules -->
                         <div class="card card-glass" style="padding: 1.5rem;">
-                            <h2 style="font-size: 1.25rem; font-weight: 700; color: #000; margin: 0 0 1rem 0;">House Rules</h2>
+                            <h2 style="font-size: 1.25rem; font-weight: 700; color: #000000; margin: 0 0 1rem 0;">House Rules</h2>
                             <div class="house-rules-list">
                                 <?php 
                                 $rules = [
@@ -174,7 +174,7 @@
                             </div>
 
                             <div style="padding-top: 1.5rem; border-top: 1px solid rgba(0,0,0,0.1);">
-                                <h3 style="font-weight: 700; color: #000; margin: 0 0 1rem 0;">Landlord</h3>
+                                <h3 style="font-weight: 700; color: #000000; margin: 0 0 1rem 0;">Landlord</h3>
                                 <div class="landlord-info">
                                     <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400" alt="Landlord" class="landlord-avatar">
                                     <div>

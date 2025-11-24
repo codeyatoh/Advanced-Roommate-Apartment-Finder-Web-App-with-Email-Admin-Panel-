@@ -12,12 +12,29 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
 
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sign in to RoomFinder - Find your perfect room and roommate">
+    <title>Login - RoomFinder</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
+
     <!-- CSS Files -->
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/variables.css">
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/globals.css">
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/cards.module.css">
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/forms.module.css">
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/login.module.css">
+    
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 
 <body>
@@ -141,6 +158,10 @@
     <script>
         lucide.createIcons();
     </script>
+    
+    <!-- Toastify JS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/js/toast-helper.js"></script>
 
     <!-- Password Toggle Script -->
     <script>
@@ -169,6 +190,56 @@
             // Implement Facebook OAuth
             console.log('Login with Facebook');
         }
+
+        // Login Form Handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.querySelector('form');
+            const submitBtn = loginForm.querySelector('button[type="submit"]');
+
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Button loading state
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.innerHTML = 'Logging in...';
+                submitBtn.disabled = true;
+
+                const formData = new FormData(this);
+                formData.append('action', 'login');
+
+                fetch('/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/controllers/AuthController.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showToast('Login successful! Redirecting...', 'success');
+                        
+                        // Redirect based on role
+                        setTimeout(() => {
+                            if (data.role === 'admin') {
+                                window.location.href = '/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/admin/dashboard.php';
+                            } else if (data.role === 'room_seeker') {
+                                window.location.href = '/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/seeker/dashboard.php';
+                            } else if (data.role === 'landlord') {
+                                window.location.href = '/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/landlord/dashboard.php';
+                            }
+                        }, 1500);
+                    } else {
+                        showToast(data.message, 'error');
+                        submitBtn.innerHTML = originalBtnText;
+                        submitBtn.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('An error occurred. Please try again.', 'error');
+                    submitBtn.innerHTML = originalBtnText;
+                    submitBtn.disabled = false;
+                });
+            });
+        });
     </script>
 </body>
 

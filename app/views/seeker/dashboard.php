@@ -15,13 +15,13 @@
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/room-card.module.css">
 </head>
 <body>
-    <div style="min-height: 100vh; background: linear-gradient(to bottom right, #fef3c7, rgba(209,250,229,0.2), #fef3c7);">
+    <div style="min-height: 100vh; background: linear-gradient(to bottom right, var(--softBlue-20), var(--neutral), var(--deepBlue-10));">
         <?php include __DIR__ . '/../includes/navbar.php'; ?>
         <div style="padding-top: 6rem; padding-bottom: 5rem; padding-left: 1rem; padding-right: 1rem;">
             <div style="max-width: 1280px; margin: 0 auto;">
                 <div style="margin-bottom: 2rem; animation: slideUp 0.3s ease-out;">
-                    <h1 style="font-size: 1.875rem; font-weight: 700; color: #064e3b; margin-bottom: 0.5rem;">Welcome back, John! 👋</h1>
-                    <p style="color: rgba(6,78,59,0.6);">Here's what's happening with your room search</p>
+                    <h1 style="font-size: 1.875rem; font-weight: 700; color: #000000; margin-bottom: 0.5rem;">Welcome back, John! 👋</h1>
+                    <p style="color: rgba(0, 0, 0, 0.6);">Here's what's happening with your room search</p>
                 </div>
 
                 <!-- Quick Stats -->
@@ -38,8 +38,8 @@
                         <div style="width: 3rem; height: 3rem; background: rgba(16,185,129,0.2); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; margin-bottom: 0.5rem;">
                             <i data-lucide="<?php echo $stat['icon']; ?>" style="width: 1.5rem; height: 1.5rem; color: #10b981;"></i>
                         </div>
-                        <p style="font-size: 1.5rem; font-weight: 700; color: #064e3b; margin: 0 0 0.125rem 0;"><?php echo $stat['value']; ?></p>
-                        <p style="font-size: 0.75rem; color: rgba(6,78,59,0.6); margin: 0;"><?php echo $stat['label']; ?></p>
+                        <p style="font-size: 1.5rem; font-weight: 700; color: #000000; margin: 0 0 0.125rem 0;"><?php echo $stat['value']; ?></p>
+                        <p style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); margin: 0;"><?php echo $stat['label']; ?></p>
                     </div>
                     <?php endforeach; ?>
                 </div>
@@ -51,8 +51,8 @@
                         <div>
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
                                 <div>
-                                    <h2 style="font-size: 1.25rem; font-weight: 700; color: #064e3b; margin: 0 0 0.125rem 0;">Recommended for You</h2>
-                                    <p style="font-size: 0.75rem; color: rgba(6,78,59,0.6); margin: 0;">Based on your preferences</p>
+                                    <h2 style="font-size: 1.25rem; font-weight: 700; color: #000000; margin: 0 0 0.125rem 0;">Recommended for You</h2>
+                                    <p style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); margin: 0;">Based on your preferences</p>
                                 </div>
                                 <button class="btn btn-ghost btn-sm">
                                     View All
@@ -91,7 +91,7 @@
 
                         <!-- Recent Activity -->
                         <div class="card card-glass" style="padding: 1.25rem;">
-                            <h3 style="font-size: 1.125rem; font-weight: 700; color: #064e3b; margin: 0 0 1rem 0;">Recent Activity</h3>
+                            <h3 style="font-size: 1.125rem; font-weight: 700; color: #000000; margin: 0 0 1rem 0;">Recent Activity</h3>
                             <div style="display: flex; flex-direction: column; gap: 1rem;">
                                 <?php 
                                 $activities = [
@@ -100,13 +100,13 @@
                                     ['icon' => 'calendar', 'text' => 'Viewing scheduled for tomorrow', 'time' => '1 day ago']
                                 ];
                                 foreach ($activities as $activity): ?>
-                                <div style="display: flex; align-items: flex-start; gap: 0.75rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(6,78,59,0.1);">
+                                <div style="display: flex; align-items: flex-start; gap: 0.75rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(0, 0, 0, 0.1);">
                                     <div style="width: 2.5rem; height: 2.5rem; background: rgba(16,185,129,0.2); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                                         <i data-lucide="<?php echo $activity['icon']; ?>" style="width: 1.25rem; height: 1.25rem; color: #10b981;"></i>
                                     </div>
                                     <div style="flex: 1;">
-                                        <p style="font-size: 0.875rem; color: #064e3b; font-weight: 500; margin: 0 0 0.125rem 0;"><?php echo $activity['text']; ?></p>
-                                        <p style="font-size: 0.75rem; color: rgba(6,78,59,0.5); margin: 0;"><?php echo $activity['time']; ?></p>
+                                        <p style="font-size: 0.875rem; color: #000000; font-weight: 500; margin: 0 0 0.125rem 0;"><?php echo $activity['text']; ?></p>
+                                        <p style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.5); margin: 0;"><?php echo $activity['time']; ?></p>
                                     </div>
                                 </div>
                                 <?php endforeach; ?>
@@ -120,8 +120,8 @@
                         <div class="card card-glass" style="padding: 1.25rem;">
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
                                 <div>
-                                    <h3 style="font-size: 1rem; font-weight: 700; color: #064e3b; margin: 0 0 0.125rem 0;">Roommate Matches</h3>
-                                    <p style="font-size: 0.75rem; color: rgba(6,78,59,0.6); margin: 0;">Top compatibility</p>
+                                    <h3 style="font-size: 1rem; font-weight: 700; color: #000000; margin: 0 0 0.125rem 0;">Roommate Matches</h3>
+                                    <p style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); margin: 0;">Top compatibility</p>
                                 </div>
                                 <button class="btn btn-ghost btn-sm" style="font-size: 0.75rem;">See All</button>
                             </div>
@@ -135,8 +135,8 @@
                                 <div style="display: flex; align-items: center; gap: 0.625rem; padding: 0.75rem; background: var(--glass-bg-subtle); border-radius: 0.75rem; cursor: pointer;">
                                     <img src="<?php echo $match['image']; ?>" alt="<?php echo $match['name']; ?>" style="width: 2.75rem; height: 2.75rem; border-radius: 9999px; object-fit: cover;">
                                     <div style="flex: 1; min-width: 0;">
-                                        <p style="font-weight: 600; font-size: 0.875rem; color: #064e3b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 0.125rem 0;"><?php echo $match['name']; ?></p>
-                                        <p style="font-size: 0.75rem; color: rgba(6,78,59,0.6); margin: 0;"><?php echo $match['occupation']; ?></p>
+                                        <p style="font-weight: 600; font-size: 0.875rem; color: #000000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 0.125rem 0;"><?php echo $match['name']; ?></p>
+                                        <p style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); margin: 0;"><?php echo $match['occupation']; ?></p>
                                     </div>
                                     <div>
                                         <div style="display: flex; align-items: center; gap: 0.25rem;">
@@ -151,7 +151,7 @@
 
                         <!-- Quick Actions -->
                         <div class="card card-glass" style="padding: 1.25rem;">
-                            <h3 style="font-size: 1rem; font-weight: 700; color: #064e3b; margin: 0 0 0.75rem 0;">Quick Actions</h3>
+                            <h3 style="font-size: 1rem; font-weight: 700; color: #000000; margin: 0 0 0.75rem 0;">Quick Actions</h3>
                             <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                                 <button class="btn btn-primary btn-sm" style="width: 100%; justify-content: flex-start;">Browse Rooms</button>
                                 <button class="btn btn-glass btn-sm" style="width: 100%; justify-content: flex-start;">Find Roommates</button>

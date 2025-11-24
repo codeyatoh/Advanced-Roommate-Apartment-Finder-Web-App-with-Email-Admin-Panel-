@@ -18,6 +18,9 @@
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/cards.module.css">
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/forms.module.css">
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/login.module.css">
+    
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 
 <body>
@@ -97,19 +100,35 @@
                     <input type="hidden" name="action" value="register">
                     <input type="hidden" name="role" id="selected-role" value="">
 
-                    <!-- Full Name Input -->
-                    <div class="form-group">
-                        <label for="name" class="form-label">Full Name</label>
-                        <div class="form-input-wrapper">
-                            <input 
-                                type="text" 
-                                id="name" 
-                                name="name" 
-                                class="form-input" 
-                                placeholder="John Doe"
-                                required
-                            >
-                            <i data-lucide="user" class="form-input-icon"></i>
+                    <!-- First Name & Last Name -->
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <div class="form-input-wrapper">
+                                <input 
+                                    type="text" 
+                                    id="first_name" 
+                                    name="first_name" 
+                                    class="form-input" 
+                                    placeholder="John"
+                                    required
+                                >
+                                <i data-lucide="user" class="form-input-icon"></i>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <div class="form-input-wrapper">
+                                <input 
+                                    type="text" 
+                                    id="last_name" 
+                                    name="last_name" 
+                                    class="form-input" 
+                                    placeholder="Doe"
+                                    required
+                                >
+                                <i data-lucide="user" class="form-input-icon"></i>
+                            </div>
                         </div>
                     </div>
 
@@ -197,12 +216,15 @@
     <script>
         lucide.createIcons();
     </script>
+    
+    <!-- Toastify JS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/js/toast-helper.js"></script>
 
     <!-- Registration Scripts -->
     <script>
         // Select Role Function
         function selectRole(role) {
-            document.getElementById('selected-role').value = role;
             document.getElementById('role-selection').style.display = 'none';
             document.getElementById('registration-form').style.display = 'block';
             
@@ -211,9 +233,11 @@
             const roleTitle = document.getElementById('role-title-display');
             
             if (role === 'seeker') {
+                document.getElementById('selected-role').value = 'room_seeker';
                 roleIcon.setAttribute('data-lucide', 'users');
                 roleTitle.textContent = 'Room Seeker Account';
             } else {
+                document.getElementById('selected-role').value = 'landlord';
                 roleIcon.setAttribute('data-lucide', 'home');
                 roleTitle.textContent = 'Landlord Account';
             }
@@ -243,6 +267,59 @@
             
             lucide.createIcons();
         }
+
+        // Registration Form Handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const registerForm = document.querySelector('form');
+            const submitBtn = registerForm.querySelector('button[type="submit"]');
+
+            registerForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Basic validation
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirm-password').value;
+
+                if (password !== confirmPassword) {
+                    showToast('Passwords do not match', 'error');
+                    return;
+                }
+
+                // Button loading state
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.innerHTML = 'Creating Account...';
+                submitBtn.disabled = true;
+
+                const formData = new FormData(this);
+                formData.append('action', 'register');
+
+                fetch('/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/controllers/AuthController.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showToast('Registration successful! Redirecting to login...', 'success');
+                        
+                        // Redirect to login page
+                        setTimeout(() => {
+                            window.location.href = '/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/public/login.php';
+                        }, 1500);
+                    } else {
+                        showToast(data.message, 'error');
+                        submitBtn.innerHTML = originalBtnText;
+                        submitBtn.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('An error occurred. Please try again.', 'error');
+                    submitBtn.innerHTML = originalBtnText;
+                    submitBtn.disabled = false;
+                });
+            });
+        });
     </script>
 </body>
 

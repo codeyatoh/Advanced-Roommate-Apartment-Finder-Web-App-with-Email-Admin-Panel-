@@ -17,13 +17,13 @@
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/match-modal.module.css">
 </head>
 <body>
-    <div style="min-height: 100vh; background: linear-gradient(to bottom right, #fef3c7, rgba(209,250,229,0.2), #fef3c7);">
+    <div style="min-height: 100vh; background: linear-gradient(to bottom right, var(--softBlue-20), var(--neutral), var(--deepBlue-10));">
         <?php include __DIR__ . '/../includes/navbar.php'; ?>
         <div style="padding-top: 6rem; padding-bottom: 5rem; padding-left: 1rem; padding-right: 1rem;">
             <div style="max-width: 1280px; margin: 0 auto;">
                 <div style="margin-bottom: 1.5rem; animation: slideUp 0.3s ease-out;">
-                    <h1 style="font-size: 1.875rem; font-weight: 700; color: #064e3b; margin-bottom: 0.5rem;">Find Your Perfect Roommate</h1>
-                    <p style="color: rgba(6,78,59,0.6);">Review profiles and find your match</p>
+                    <h1 style="font-size: 1.875rem; font-weight: 700; color: #000000; margin-bottom: 0.5rem;">Find Your Perfect Roommate</h1>
+                    <p style="color: rgba(0, 0, 0, 0.6);">Review profiles and find your match</p>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;">
@@ -42,8 +42,8 @@
                                     <div style="flex: 1; display: flex; flex-direction: column; gap: 1.25rem;">
                                         <div style="display: flex; align-items: flex-start; justify-content: space-between;">
                                             <div>
-                                                <h2 style="font-size: 1.875rem; font-weight: 700; color: #064e3b; margin: 0 0 0.25rem 0;">Sarah Johnson, 25</h2>
-                                                <div style="display: flex; align-items: center; gap: 0.5rem; color: rgba(6,78,59,0.7);">
+                                                <h2 style="font-size: 1.875rem; font-weight: 700; color: #000000; margin: 0 0 0.25rem 0;">Sarah Johnson, 25</h2>
+                                                <div style="display: flex; align-items: center; gap: 0.5rem; color: rgba(0, 0, 0, 0.7);">
                                                     <i data-lucide="briefcase" style="width: 1rem; height: 1rem;"></i>
                                                     <span style="font-size: 0.875rem;">Software Engineer</span>
                                                 </div>
@@ -54,14 +54,14 @@
                                             </div>
                                         </div>
                                         <div>
-                                            <h3 style="font-size: 0.875rem; font-weight: 700; color: rgba(6,78,59,0.6); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 0.5rem 0;">About</h3>
-                                            <p style="color: rgba(6,78,59,0.8); line-height: 1.6; margin: 0;">Love hiking, cooking, and good coffee. Looking for a clean and respectful roommate who enjoys a balanced lifestyle.</p>
+                                            <h3 style="font-size: 0.875rem; font-weight: 700; color: rgba(0, 0, 0, 0.6); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 0.5rem 0;">About</h3>
+                                            <p style="color: rgba(0, 0, 0, 0.8); line-height: 1.6; margin: 0;">Love hiking, cooking, and good coffee. Looking for a clean and respectful roommate who enjoys a balanced lifestyle.</p>
                                         </div>
                                         <div style="flex: 1;">
-                                            <h3 style="font-size: 0.875rem; font-weight: 700; color: rgba(6,78,59,0.6); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 0.75rem 0;">Interests</h3>
+                                            <h3 style="font-size: 0.875rem; font-weight: 700; color: rgba(0, 0, 0, 0.6); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 0.75rem 0;">Interests</h3>
                                             <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
                                                 <?php foreach (['Hiking', 'Cooking', 'Coffee', 'Yoga', 'Reading'] as $interest): ?>
-                                                <span style="padding: 0.5rem 1rem; background: var(--glass-bg-subtle); backdrop-filter: blur(8px); border-radius: 9999px; font-size: 0.875rem; color: #064e3b; font-weight: 500;"><?php echo $interest; ?></span>
+                                                <span style="padding: 0.5rem 1rem; background: var(--glass-bg-subtle); backdrop-filter: blur(8px); border-radius: 9999px; font-size: 0.875rem; color: #000000; font-weight: 500;"><?php echo $interest; ?></span>
                                                 <?php endforeach; ?>
                                             </div>
                                         </div>
@@ -106,8 +106,8 @@
                                     <i data-lucide="clock" style="width: 1rem; height: 1rem; color: #ca8a04;"></i>
                                 </div>
                                 <div>
-                                    <h3 style="font-size: 0.875rem; font-weight: 700; color: #064e3b; margin: 0;">Pending Matches</h3>
-                                    <p style="font-size: 0.75rem; color: rgba(6,78,59,0.6); margin: 0;">2 people liked you</p>
+                                    <h3 style="font-size: 0.875rem; font-weight: 700; color: #000000; margin: 0;">Pending Matches</h3>
+                                    <p style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); margin: 0;">2 people liked you</p>
                                 </div>
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -120,8 +120,8 @@
                                 <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; background: var(--glass-bg-subtle); border-radius: 0.5rem; cursor: pointer;">
                                     <img src="<?php echo $person['image']; ?>" alt="<?php echo $person['name']; ?>" style="width: 3rem; height: 3rem; border-radius: 9999px; object-fit: cover;">
                                     <div style="flex: 1; min-width: 0;">
-                                        <p style="font-size: 0.875rem; font-weight: 600; color: #064e3b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;"><?php echo $person['name']; ?>, <?php echo $person['age']; ?></p>
-                                        <p style="font-size: 0.75rem; color: rgba(6,78,59,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;"><?php echo $person['occupation']; ?></p>
+                                        <p style="font-size: 0.875rem; font-weight: 600; color: #000000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;"><?php echo $person['name']; ?>, <?php echo $person['age']; ?></p>
+                                        <p style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;"><?php echo $person['occupation']; ?></p>
                                     </div>
                                     <div style="font-size: 0.75rem; font-weight: 700; color: #10b981;"><?php echo $person['compatibility']; ?>%</div>
                                 </div>
@@ -136,8 +136,8 @@
                                     <i data-lucide="heart" style="width: 1rem; height: 1rem; color: #10b981;"></i>
                                 </div>
                                 <div>
-                                    <h3 style="font-size: 0.875rem; font-weight: 700; color: #064e3b; margin: 0;">Matched</h3>
-                                    <p style="font-size: 0.75rem; color: rgba(6,78,59,0.6); margin: 0;">2 mutual matches</p>
+                                    <h3 style="font-size: 0.875rem; font-weight: 700; color: #000000; margin: 0;">Matched</h3>
+                                    <p style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); margin: 0;">2 mutual matches</p>
                                 </div>
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -153,12 +153,12 @@
                                         <div style="position: absolute; bottom: -0.25rem; right: -0.25rem; width: 1rem; height: 1rem; background: #10b981; border-radius: 9999px; border: 2px solid white;"></div>
                                     </div>
                                     <div style="flex: 1; min-width: 0;">
-                                        <p style="font-size: 0.875rem; font-weight: 600; color: #064e3b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;"><?php echo $person['name']; ?>, <?php echo $person['age']; ?></p>
-                                        <p style="font-size: 0.75rem; color: rgba(6,78,59,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;"><?php echo $person['lastMessage']; ?></p>
+                                        <p style="font-size: 0.875rem; font-weight: 600; color: #000000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;"><?php echo $person['name']; ?>, <?php echo $person['age']; ?></p>
+                                        <p style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;"><?php echo $person['lastMessage']; ?></p>
                                     </div>
                                     <div style="display: flex; flex-direction: column; align-items: flex-end;">
                                         <i data-lucide="message-square" style="width: 1rem; height: 1rem; color: #10b981; margin-bottom: 0.25rem;"></i>
-                                        <span style="font-size: 0.75rem; color: rgba(6,78,59,0.5);"><?php echo $person['time']; ?></span>
+                                        <span style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.5);"><?php echo $person['time']; ?></span>
                                     </div>
                                 </div>
                                 <?php endforeach; ?>
