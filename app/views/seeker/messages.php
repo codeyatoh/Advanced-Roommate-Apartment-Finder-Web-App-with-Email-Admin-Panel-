@@ -94,18 +94,23 @@ if ($selectedConversationId) {
                         <!-- Conversations Panel -->
                         <div class="conversations-panel">
                             <div class="conversations-search">
-                                <div class="form-input-wrapper">
-                                    <i data-lucide="search" class="form-input-icon" style="width: 1.25rem; height: 1.25rem; color: rgba(0,0,0,0.4); z-index: 10;"></i>
-                                    <input type="text" class="form-input" placeholder="Search messages..." style="font-size: 0.875rem;" id="searchMessages">
+                                <div style="position: relative;">
+                                    <i data-lucide="search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); width: 1.25rem; height: 1.25rem; color: rgba(0,0,0,0.4); z-index: 10;"></i>
+                                    <input type="text" class="form-input" placeholder="Search messages..." style="padding-left: 2.25rem; padding-top: 0.5rem; padding-bottom: 0.5rem; font-size: 0.875rem;" id="searchMessages">
                                 </div>
                             </div>
                             <div class="conversations-list">
                                 <?php foreach ($conversations as $conv): 
                                     $isActive = $conv['other_user_id'] == $selectedConversationId;
-                                    $userName = htmlspecialchars($conv['first_name'] . ' ' . $conv['last_name']);
-                                    $avatar = !empty($conv['profile_photo']) 
-                                        ? htmlspecialchars($conv['profile_photo'])
+                                    $userName = htmlspecialchars($conv['other_user_name'] ?? 'Unknown User');
+                                    $avatar = !empty($conv['other_user_photo']) 
+                                        ? htmlspecialchars($conv['other_user_photo'])
                                         : 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=10b981&color=fff';
+                                    
+                                    // Role Badge Logic
+                                    $role = $conv['other_user_role'] ?? 'seeker';
+                                    $badgeLabel = $role === 'landlord' ? 'Landlord' : 'Matched';
+                                    $badgeClass = $role === 'landlord' ? 'landlord' : 'seeker';
                                     
                                     // Calculate time ago
                                     $timestamp = strtotime($conv['last_message_time']);
@@ -121,21 +126,22 @@ if ($selectedConversationId) {
                                     }
                                 ?>
                                 <a href="?user_id=<?php echo $conv['other_user_id']; ?>" class="conversation-item <?php echo $isActive ? 'active' : ''; ?>" style="text-decoration: none; color: inherit;">
-                                    <div class="conversation-content">
-                                        <div class="conversation-avatar">
-                                            <img src="<?php echo $avatar; ?>" alt="<?php echo $userName; ?>">
-                                        </div>
-                                        <div class="conversation-details">
-                                            <div class="conversation-header">
-                                                <h3 class="conversation-name"><?php echo $userName; ?></h3>
-                                                <span class="conversation-time"><?php echo $timeAgo; ?></span>
-                                            </div>
-                                            <p class="conversation-message"><?php echo htmlspecialchars($conv['last_message']); ?></p>
-                                        </div>
-                                        <?php if ($conv['unread_count'] > 0): ?>
-                                        <div class="conversation-unread"><?php echo $conv['unread_count']; ?></div>
-                                        <?php endif; ?>
-                                    </div>
+                                                <div style="display: flex; align-items: flex-start; gap: 0.625rem;">
+                                                    <img src="<?php echo $avatar; ?>" alt="<?php echo $userName; ?>" style="width: 2.5rem; height: 2.5rem; border-radius: 9999px; object-fit: cover;">
+                                                    <div style="flex: 1; min-width: 0;">
+                                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.125rem;">
+                                                            <h3 style="font-weight: 600; font-size: 0.875rem; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;"><?php echo $userName; ?></h3>
+                                                            <span style="font-size: 0.75rem; color: rgba(0,0,0,0.5); flex-shrink: 0; margin-left: 0.5rem;"><?php echo $timeAgo; ?></span>
+                                                        </div>
+                                                        <?php if (!empty($conv['listing_title'])): ?>
+                                                        <p style="font-size: 0.75rem; color: rgba(0,0,0,0.6); margin: 0 0 0.25rem 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($conv['listing_title']); ?></p>
+                                                        <?php endif; ?>
+                                                        <p style="font-size: 0.75rem; color: rgba(0,0,0,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;"><?php echo htmlspecialchars($conv['last_message']); ?></p>
+                                                    </div>
+                                                    <?php if ($conv['unread_count'] > 0): ?>
+                                                    <div style="width: 0.5rem; height: 0.5rem; background-color: var(--deep-blue); border-radius: 9999px; flex-shrink: 0; margin-top: 0.5rem;"></div>
+                                                    <?php endif; ?>
+                                                </div>
                                 </a>
                                 <?php endforeach; ?>
                             </div>
@@ -147,72 +153,87 @@ if ($selectedConversationId) {
                             $selectedAvatar = !empty($selectedUser['profile_photo'])
                                 ? htmlspecialchars($selectedUser['profile_photo'])
                                 : 'https://ui-avatars.com/api/?name=' . urlencode($selectedUserName) . '&background=10b981&color=fff';
+                            
+                            // Role Badge Logic for Header
+                            $selectedRole = $selectedUser['role'] ?? 'seeker';
+                            $selectedBadgeLabel = $selectedRole === 'landlord' ? 'Landlord' : 'Matched';
+                            $selectedBadgeClass = $selectedRole === 'landlord' ? 'landlord' : 'seeker';
                         ?>
                         <div class="chat-panel">
-                            <div class="chat-header">
-                                <div class="chat-header-info">
-                                    <div class="chat-header-avatar">
-                                        <img src="<?php echo $selectedAvatar; ?>" alt="<?php echo $selectedUserName; ?>">
-                                    </div>
-                                    <div style="flex: 1;">
-                                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                                            <h3 class="chat-header-name" style="margin: 0;"><?php echo $selectedUserName; ?></h3>
-                                            <?php if ($relationshipType === 'roommate'): ?>
-                                            <span style="padding: 0.125rem 0.5rem; background: rgba(16, 185, 129, 0.15); color: var(--green); border-radius: 9999px; font-size: 0.625rem; font-weight: 600; line-height: 1;">
-                                                Matched Roommate
-                                            </span>
-                                            <?php elseif ($relationshipType === 'landlord'): ?>
-                                            <span style="padding: 0.125rem 0.5rem; background: rgba(59, 130, 246, 0.15); color: var(--blue); border-radius: 9999px; font-size: 0.625rem; font-weight: 600; line-height: 1;">
-                                                Landlord
-                                            </span>
-                                            <?php endif; ?>
-                                        </div>
-                                        <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.75rem; color: rgba(0,0,0,0.5);">
-                                            <div style="display: flex; align-items: center; gap: 0.25rem;">
-                                                <i data-lucide="mail" style="width: 0.875rem; height: 0.875rem;"></i>
-                                                <span><?php echo htmlspecialchars($selectedUser['email']); ?></span>
+                            <!-- Header -->
+                            <div style="padding: 1rem; border-bottom: 1px solid rgba(0,0,0,0.1);">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <img src="<?php echo $selectedAvatar; ?>" alt="<?php echo $selectedUserName; ?>" style="width: 2.5rem; height: 2.5rem; border-radius: 9999px; object-fit: cover;">
+                                        <div>
+                                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                                                <h3 style="font-weight: 600; color: #000; margin: 0;"><?php echo $selectedUserName; ?></h3>
+                                                <span class="role-badge <?php echo $selectedBadgeClass; ?>"><?php echo $selectedBadgeLabel; ?></span>
                                             </div>
-                                            <?php if (!empty($selectedUser['phone'])): ?>
-                                            <div style="display: flex; align-items: center; gap: 0.25rem;">
-                                                <i data-lucide="phone" style="width: 0.875rem; height: 0.875rem;"></i>
-                                                <span><?php echo htmlspecialchars($selectedUser['phone']); ?></span>
-                                            </div>
+                                            <?php 
+                                            // Get listing title if exists in conversation
+                                            $listingTitle = '';
+                                            foreach ($conversations as $conv) {
+                                                if ($conv['other_user_id'] == $selectedConversationId && !empty($conv['listing_title'])) {
+                                                    $listingTitle = $conv['listing_title'];
+                                                    break;
+                                                }
+                                            }
+                                            if ($listingTitle): ?>
+                                            <p style="font-size: 0.75rem; color: rgba(0,0,0,0.6); margin: 0;"><?php echo htmlspecialchars($listingTitle); ?></p>
                                             <?php endif; ?>
                                         </div>
                                     </div>
                                 </div>
+                                <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.75rem; color: rgba(0,0,0,0.6);">
+                                    <div style="display: flex; align-items: center; gap: 0.25rem;">
+                                        <i data-lucide="mail" style="width: 0.75rem; height: 0.75rem;"></i>
+                                        <span><?php echo htmlspecialchars($selectedUser['email']); ?></span>
+                                    </div>
+                                    <?php if (!empty($selectedUser['phone'])): ?>
+                                    <div style="display: flex; align-items: center; gap: 0.25rem;">
+                                        <i data-lucide="phone" style="width: 0.75rem; height: 0.75rem;"></i>
+                                        <span><?php echo htmlspecialchars($selectedUser['phone']); ?></span>
+                                    </div>
+                                    <?php endif; ?>
+                                </div>
                             </div>
 
-                            <div class="chat-messages" id="chatMessages">
+                            <!-- Message Content -->
+                            <div style="flex: 1; overflow-y: auto; padding: 1rem;" id="chatMessages">
                                 <?php foreach ($messages as $msg): 
                                     $isSent = $msg['sender_id'] == $userId;
                                     $timestamp = new DateTime($msg['created_at']);
                                     $timeDisplay = $timestamp->format('g:i A');
+                                    $dateDisplay = $timestamp->format('M j, Y');
                                 ?>
-                                <div class="message-wrapper <?php echo $isSent ? 'sent' : 'received'; ?>">
-                                    <div class="message-bubble">
-                                        <p class="message-text"><?php echo nl2br(htmlspecialchars($msg['message_content'])); ?></p>
-                                        <span class="message-time"><?php echo $timeDisplay; ?></span>
+                                <div style="margin-bottom: 1rem; <?php echo $isSent ? 'display: flex; justify-content: flex-end;' : ''; ?>">
+                                    <div style="max-width: 80%; <?php echo !$isSent ? 'background-color: rgba(96, 165, 250, 0.3);' : 'background-color: var(--deep-blue); color: white;'; ?> border-radius: 1rem; padding: 0.75rem 1rem;">
+                                        <p style="font-size: 0.875rem; <?php echo $isSent ? 'color: white;' : 'color: #000;'; ?> line-height: 1.625; margin: 0 0 0.5rem 0;"><?php echo nl2br(htmlspecialchars($msg['message_content'])); ?></p>
+                                        <p style="font-size: 0.75rem; <?php echo $isSent ? 'color: rgba(255,255,255,0.7);' : 'color: rgba(0,0,0,0.5);'; ?> margin: 0;"><?php echo $timeDisplay; ?></p>
                                     </div>
                                 </div>
                                 <?php endforeach; ?>
                             </div>
 
-                            <div class="chat-input-container">
-                                <form id="messageForm" style="display: flex; align-items: center; gap: 0.75rem;">
+                            <!-- Reply Input -->
+                            <div style="padding: 1rem; border-top: 1px solid rgba(0,0,0,0.1);">
+                                <form id="messageForm" style="display: flex; gap: 0.5rem;">
                                     <input type="hidden" name="receiver_id" value="<?php echo $selectedConversationId; ?>">
-                                    <button type="button" class="chat-input-icon-btn">
-                                        <i data-lucide="paperclip"></i>
+                                    <button type="button" title="Attach file" style="background: none; border: none; padding: 0.5rem; cursor: pointer; color: rgba(0,0,0,0.6); transition: color 0.2s;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='rgba(0,0,0,0.6)'">
+                                        <i data-lucide="paperclip" style="width: 1.25rem; height: 1.25rem;"></i>
                                     </button>
-                                    <button type="button" class="chat-input-icon-btn">
-                                        <i data-lucide="image"></i>
+                                    <button type="button" title="Attach image" style="background: none; border: none; padding: 0.5rem; cursor: pointer; color: rgba(0,0,0,0.6); transition: color 0.2s;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='rgba(0,0,0,0.6)'">
+                                        <i data-lucide="image" style="width: 1.25rem; height: 1.25rem;"></i>
                                     </button>
-                                    <button type="button" class="chat-input-icon-btn">
-                                        <i data-lucide="smile"></i>
-                                    </button>
-                                    <input type="text" name="message" class="chat-input" placeholder="Type a message..." id="messageInput" autocomplete="off">
-                                    <button type="submit" class="btn btn-primary" style="padding: 0.625rem 1.25rem;">
-                                        <i data-lucide="send" style="width: 1.125rem; height: 1.125rem;"></i>
+                                    <div style="flex: 1; position: relative;">
+                                        <button type="button" title="Emoji" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 0; cursor: pointer; color: rgba(0,0,0,0.6); transition: color 0.2s; z-index: 1;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='rgba(0,0,0,0.6)'">
+                                            <i data-lucide="smile" style="width: 1.25rem; height: 1.25rem;"></i>
+                                        </button>
+                                        <input type="text" name="message" class="form-input" placeholder="Type your reply..." style="width: 100%; padding-left: 2.75rem; font-size: 0.875rem;" id="messageInput" autocomplete="off">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i data-lucide="send" style="width: 1rem; height: 1rem;"></i>
                                         Send
                                     </button>
                                 </form>

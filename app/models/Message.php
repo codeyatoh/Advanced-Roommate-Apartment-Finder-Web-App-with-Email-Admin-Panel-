@@ -21,12 +21,14 @@ class Message extends BaseModel {
                 FROM {$this->table} m
                 LEFT JOIN users u ON m.sender_id = u.user_id
                 WHERE (m.sender_id = :user1 AND m.receiver_id = :user2)
-                   OR (m.sender_id = :user2 AND m.receiver_id = :user1)
+                   OR (m.sender_id = :user2_dup AND m.receiver_id = :user1_dup)
                 ORDER BY m.created_at ASC";
         
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':user1', $user1, PDO::PARAM_INT);
         $stmt->bindValue(':user2', $user2, PDO::PARAM_INT);
+        $stmt->bindValue(':user2_dup', $user2, PDO::PARAM_INT);
+        $stmt->bindValue(':user1_dup', $user1, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll();
     }
@@ -44,6 +46,7 @@ class Message extends BaseModel {
                     END as other_user_id,
                     CONCAT(u.first_name, ' ', u.last_name) as other_user_name,
                     u.profile_photo as other_user_photo,
+                    u.role as other_user_role,
                     m.message_content as last_message,
                     m.created_at as last_message_time,
                     m.is_read,
@@ -161,8 +164,13 @@ class Message extends BaseModel {
         
         // Add unread count for each conversation
         foreach ($conversations as &$conv) {
-            $unreadCount = $this->getUnreadCountFromUser($userId, $conv['other_user_id']);
-            $conv['unread_count'] = $unreadCount;
+            // Skip if other_user_id is null
+            if (!empty($conv['other_user_id'])) {
+                $unreadCount = $this->getUnreadCountFromUser($userId, $conv['other_user_id']);
+                $conv['unread_count'] = $unreadCount;
+            } else {
+                $conv['unread_count'] = 0;
+            }
         }
         
         return $conversations;

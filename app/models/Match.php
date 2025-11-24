@@ -126,7 +126,7 @@ class MatchModel extends BaseModel {
                         WHEN rm.seeker_id = :seeker_id1 THEN rm.target_seeker_id
                         ELSE rm.seeker_id
                     END as match_user_id,
-                    u.first_name, u.last_name, u.profile_photo, 
+                    u.first_name, u.last_name, u.profile_photo, u.role,
                     sp.occupation, rm.created_at
                 FROM {$this->table} rm
                 INNER JOIN users u ON (

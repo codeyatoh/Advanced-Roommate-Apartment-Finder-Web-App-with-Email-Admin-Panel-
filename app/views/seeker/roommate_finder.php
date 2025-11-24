@@ -209,7 +209,15 @@ $mutualMatches = $matchModel->getMutualMatches($userId);
                                             </div>
                                             <div style="flex: 1; min-width: 0;">
                                                 <p style="font-size: 0.875rem; font-weight: 600; color: #000000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;"><?php echo $mName; ?></p>
-                                                <p style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;"><?php echo htmlspecialchars($person['occupation'] ?? 'Room Seeker'); ?></p>
+                                                <p style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;">
+                                                    <?php 
+                                                    if (!empty($person['role']) && $person['role'] === 'landlord') {
+                                                        echo 'Landlord';
+                                                    } else {
+                                                        echo htmlspecialchars($person['occupation'] ?? 'Room Seeker');
+                                                    }
+                                                    ?>
+                                                </p>
                                             </div>
                                         </a>
                                         <div style="display: flex; flex-direction: column; align-items: flex-end;">
