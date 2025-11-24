@@ -24,16 +24,39 @@
     require_once __DIR__ . '/../../models/Listing.php';
     require_once __DIR__ . '/../../models/Message.php';
     require_once __DIR__ . '/../../models/Appointment.php';
+    require_once __DIR__ . '/../../models/User.php';
     
     $listingModel = new Listing();
     $messageModel = new Message();
     $appointmentModel = new Appointment();
+    $userModel = new User();
     
     // Fetch landlord stats
     $landlordStats = $listingModel->getLandlordStats($landlordId);
     $pendingAppointments = $appointmentModel->getPendingCount($landlordId);
-    $recentInquiriesData = $messageModel->getLandlordInquiries($landlordId);
-    $recentInquiriesData = array_slice($recentInquiriesData, 0, 3); // Show only 3
+    
+    // Fetch pending viewings (appointments with status 'pending')
+    $pendingViewings = $appointmentModel->getPendingForLandlord($landlordId);
+    
+    // Calculate performance metrics
+    // Monthly Revenue: Sum of prices from all active listings
+    $monthlyRevenue = 0;
+    $activeListings = $listingModel->getByLandlord($landlordId);
+    foreach ($activeListings as $listing) {
+        if ($listing['status'] === 'available') {
+            $monthlyRevenue += floatval($listing['price']);
+        }
+    }
+    
+    // Occupancy Rate: (Active listings / Total listings) * 100
+    $totalListings = count($activeListings);
+    $occupiedListings = 0;
+    foreach ($activeListings as $listing) {
+        if ($listing['status'] === 'rented') {
+            $occupiedListings++;
+        }
+    }
+    $occupancyRate = $totalListings > 0 ? round(($occupiedListings / $totalListings) * 100) : 0;
     ?>
     <div class="landlord-page">
         <?php include __DIR__ . '/../includes/navbar.php'; ?>
@@ -45,9 +68,7 @@
                     <h1 class="page-title">Landlord Dashboard</h1>
                     <p class="page-subtitle">Manage your properties and tenant inquiries</p>
                 </div>
-                <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/landlord/add_listing.php" class="btn btn-primary btn-md">
-                    <i data-lucide="plus" style="width: 20px; height: 20px;"></i>
-                    Add Listing
+            </div>
                 </a>
             </div>
 
@@ -104,6 +125,13 @@
                             <div>
                                 <h2 style="font-size: 1.25rem; font-weight: 700; color: #000; margin-bottom: 0.125rem;">Recent Inquiries</h2>
                                 <p style="font-size: 0.75rem; color: rgba(0,0,0,0.6);">New messages from potential tenants</p>
+                            </div>
+                        </div>
+                        <!-- Inquiries list will go here -->
+                        <p style="color: rgba(0,0,0,0.5); text-align: center; padding: 2rem;">No recent inquiries</p>
+                    </div>
+
+                    <!-- Performance Overview -->
                     <div class="glass-card" style="padding: 1.25rem;">
                         <h2 style="font-size: 1.25rem; font-weight: 700; color: #000; margin-bottom: 1rem;">Performance Overview</h2>
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
@@ -112,10 +140,9 @@
                                     <i data-lucide="dollar-sign" style="width: 1.25rem; height: 1.25rem; color: var(--deep-blue);"></i>
                                     <p style="font-size: 0.875rem; color: rgba(0,0,0,0.6);">Monthly Revenue</p>
                                 </div>
-                                <p style="font-size: 1.5rem; font-weight: 700; color: #000;">$9,600</p>
+                                <p style="font-size: 1.5rem; font-weight: 700; color: #000;">$<?php echo number_format($monthlyRevenue, 0); ?></p>
                                 <div style="display: flex; align-items: center; gap: 0.25rem; margin-top: 0.25rem;">
-                                    <i data-lucide="trending-up" style="width: 0.75rem; height: 0.75rem; color: #16a34a;"></i>
-                                    <span style="font-size: 0.75rem; color: #16a34a;">+12%</span>
+                                    <span style="font-size: 0.75rem; color: rgba(0,0,0,0.6);">From <?php echo count($activeListings); ?> active listings</span>
                                 </div>
                             </div>
                             <div class="glass-subtle" style="padding: 1rem; border-radius: 0.75rem;">
@@ -123,10 +150,9 @@
                                     <i data-lucide="users" style="width: 1.25rem; height: 1.25rem; color: var(--deep-blue);"></i>
                                     <p style="font-size: 0.875rem; color: rgba(0,0,0,0.6);">Occupancy Rate</p>
                                 </div>
-                                <p style="font-size: 1.5rem; font-weight: 700; color: #000;">87%</p>
+                                <p style="font-size: 1.5rem; font-weight: 700; color: #000;"><?php echo $occupancyRate; ?>%</p>
                                 <div style="display: flex; align-items: center; gap: 0.25rem; margin-top: 0.25rem;">
-                                    <i data-lucide="trending-up" style="width: 0.75rem; height: 0.75rem; color: #16a34a;"></i>
-                                    <span style="font-size: 0.75rem; color: #16a34a;">+5%</span>
+                                    <span style="font-size: 0.75rem; color: rgba(0,0,0,0.6);"><?php echo $occupiedListings; ?>/<?php echo $totalListings; ?> rented</span>
                                 </div>
                             </div>
                         </div>
@@ -134,79 +160,6 @@
                 </div>
 
                 <!-- Right Column - Sidebar -->
-                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-                    <!-- Pending Viewings -->
-                    <div class="glass-card" style="padding: 1.25rem;">
-                        <h3 style="font-size: 1rem; font-weight: 700; color: #000; margin-bottom: 1rem;">Pending Viewings</h3>
-                        <div style="display: flex; flex-direction: column; gap: 0.625rem;">
-                            <?php
-                            $upcomingViewings = [
-                                [
-                                    'id' => 1,
-                                    'tenant' => 'John Doe',
-                                    'property' => 'Modern Studio Downtown',
-                                    'date' => 'Tomorrow',
-                                    'time' => '2:00 PM',
-                                    'status' => 'pending',
-                                ],
-                                [
-                                    'id' => 2,
-                                    'tenant' => 'Jane Smith',
-                                    'property' => 'Cozy Apartment',
-                                    'date' => 'Feb 2, 2024',
-                                    'time' => '10:00 AM',
-                                    'status' => 'confirmed',
-                                ],
-                            ];
-
-                            foreach ($upcomingViewings as $viewing): ?>
-                            <div class="glass-subtle" style="padding: 0.75rem; border-radius: 0.75rem;">
-                                <div style="display: flex; align-items: flex-start; gap: 0.625rem; margin-bottom: 0.75rem;">
-                                    <div style="width: 2.25rem; height: 2.25rem; background-color: rgba(30, 58, 138, 0.2); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                        <i data-lucide="calendar" style="width: 1rem; height: 1rem; color: var(--deep-blue);"></i>
-                                    </div>
-                                    <div style="flex: 1; min-width: 0;">
-                                        <p style="font-weight: 600; font-size: 0.875rem; color: #000; margin-bottom: 0.25rem;"><?php echo $viewing['tenant']; ?></p>
-                                        <p style="font-size: 0.75rem; color: rgba(0,0,0,0.6); margin-bottom: 0.25rem;"><?php echo $viewing['property']; ?></p>
-                                        <p style="font-size: 0.75rem; color: rgba(0,0,0,0.5);"><?php echo $viewing['date']; ?>, <?php echo $viewing['time']; ?></p>
-                                    </div>
-                                </div>
-                                <?php if ($viewing['status'] === 'pending'): ?>
-                                <div style="display: flex; gap: 0.5rem;">
-                                    <button class="btn btn-primary btn-sm" style="flex: 1; font-size: 0.75rem;">Approve</button>
-                                    <button class="btn btn-ghost btn-sm" style="flex: 1; font-size: 0.75rem;">Decline</button>
-                                </div>
-                                <?php elseif ($viewing['status'] === 'confirmed'): ?>
-                                <div style="padding: 0.25rem 0.5rem; background-color: #dcfce7; color: #15803d; border-radius: 0.25rem; font-size: 0.75rem; text-align: center; font-weight: 500;">
-                                    Confirmed
-                                </div>
-                                <?php endif; ?>
-                            </div>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-
-                    <!-- Quick Actions -->
-                    <div class="glass-card" style="padding: 1.25rem;">
-                        <h3 style="font-size: 1rem; font-weight: 700; color: #000; margin-bottom: 0.75rem;">Quick Actions</h3>
-                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                            <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/landlord/add_listing.php" class="btn btn-primary btn-sm" style="justify-content: flex-start; width: 100%;">
-                                <i data-lucide="plus" style="width: 1rem; height: 1rem;"></i>
-                                Add New Listing
-                            </a>
-                            <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/landlord/inquiries.php" class="btn btn-glass btn-sm" style="justify-content: flex-start; width: 100%;">
-                                <i data-lucide="message-square" style="width: 1rem; height: 1rem;"></i>
-                                View All Inquiries
-                            </a>
-                            <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/landlord/appointments.php" class="btn btn-glass btn-sm" style="justify-content: flex-start; width: 100%;">
-                                <i data-lucide="calendar" style="width: 1rem; height: 1rem;"></i>
-                                Manage Appointments
-                            </a>
-                            <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/landlord/listings.php" class="btn btn-glass btn-sm" style="justify-content: flex-start; width: 100%;">
-                                <i data-lucide="home" style="width: 1rem; height: 1rem;"></i>
-                                View All Listings
-                            </a>
-                        </div>
                     </div>
                 </div>
             </div>

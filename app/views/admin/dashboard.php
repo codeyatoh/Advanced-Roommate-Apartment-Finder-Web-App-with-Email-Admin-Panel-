@@ -165,29 +165,6 @@
                             <?php endforeach; ?>
                         </div>
                     </div>
-
-                    <!-- Quick Actions -->
-                    <div class="glass-card" style="padding: 1.25rem;">
-                        <h3 style="font-size: 1.125rem; font-weight: 700; color: #000; margin-bottom: 1rem;">Quick Actions</h3>
-                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                            <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/admin/users.php" class="btn btn-primary btn-sm" style="justify-content: flex-start; width: 100%;">
-                                <i data-lucide="users" style="width: 1rem; height: 1rem;"></i>
-                                Manage Users
-                            </a>
-                            <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/admin/listings.php" class="btn btn-glass btn-sm" style="justify-content: flex-start; width: 100%;">
-                                <i data-lucide="home" style="width: 1rem; height: 1rem;"></i>
-                                Review Listings
-                            </a>
-                            <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/admin/reports.php" class="btn btn-glass btn-sm" style="justify-content: flex-start; width: 100%;">
-                                <i data-lucide="alert-triangle" style="width: 1rem; height: 1rem;"></i>
-                                View Reports
-                            </a>
-                            <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/admin/notifications.php" class="btn btn-glass btn-sm" style="justify-content: flex-start; width: 100%;">
-                                <i data-lucide="message-square" style="width: 1rem; height: 1rem;"></i>
-                                Notification Logs
-                            </a>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

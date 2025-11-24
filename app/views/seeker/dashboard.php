@@ -170,16 +170,6 @@ $recommendedListings = $listingModel->getAvailable(2); // Get 2 listings
                                 <?php endforeach; ?>
                             </div>
                         </div>
-
-                        <!-- Quick Actions -->
-                        <div class="card card-glass" style="padding: 1.25rem;">
-                            <h3 style="font-size: 1rem; font-weight: 700; color: #000000; margin: 0 0 0.75rem 0;">Quick Actions</h3>
-                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                                <button class="btn btn-primary btn-sm" style="width: 100%; justify-content: flex-start;">Browse Rooms</button>
-                                <button class="btn btn-glass btn-sm" style="width: 100%; justify-content: flex-start;">Find Roommates</button>
-                                <button class="btn btn-glass btn-sm" style="width: 100%; justify-content: flex-start;">View Messages</button>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
