@@ -6,13 +6,67 @@
     <title>Inquiries - RoomFinder</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/variables.css">
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/globals.css">
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/navbar.module.css">
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/landlord.module.css">
 </head>
 <body>
+<?php
+// Start session and load models
+session_start();
+require_once __DIR__ . '/../../models/Message.php';
+require_once __DIR__ . '/../../models/User.php';
+require_once __DIR__ . '/../../models/Listing.php';
+
+// Check if user is logged in as landlord
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'landlord') {
+    header('Location: /Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/public/login.php');
+    exit;
+}
+
+$landlordId = $_SESSION['user_id'];
+$messageModel = new Message();
+$userModel = new User();
+$listingModel = new Listing();
+
+// Get all inquiries (conversations) for this landlord
+$inquiries = $messageModel->getLandlordInquiries($landlordId);
+
+// Format inquiries with additional data
+foreach ($inquiries as &$inquiry) {
+    // Get user details
+    $user = $userModel->getById($inquiry['other_user_id']);
+    $inquiry['tenant'] = $user['first_name'] . ' ' . $user['last_name'];
+    $inquiry['email'] = $user['email'] ?? '';
+    $inquiry['phone'] = $user['phone'] ?? '';
+    $inquiry['avatar'] = $user['profile_photo'] ?? 'https://ui-avatars.com/api/?name=' . urlencode($inquiry['tenant']) . '&background=10b981&color=fff';
+    
+    // Get listing details
+    if (!empty($inquiry['listing_id'])) {
+        $listing = $listingModel->getById($inquiry['listing_id']);
+        $inquiry['property'] = $listing['title'] ?? 'Deleted Listing';
+    } else {
+        $inquiry['property'] = 'General Inquiry';
+    }
+    
+    // Format time
+    $time = new DateTime($inquiry['last_message_time']);
+    $now = new DateTime();
+    $diff = $now->diff($time);
+    if ($diff->days > 0) {
+        $inquiry['time'] = $diff->days . ' day' . ($diff->days > 1 ? 's' : '') . ' ago';
+    } elseif ($diff->h > 0) {
+        $inquiry['time'] = $diff->h . ' hour' . ($diff->h > 1 ? 's' : '') . ' ago';
+    } else {
+        $inquiry['time'] = max(1, $diff->i) . ' minute' . ($diff->i > 1 ? 's' : '') . ' ago';
+    }
+    
+    $inquiry['message'] = $inquiry['last_message'];
+    $inquiry['unread'] = $inquiry['unread_count'] > 0;
+}
+?>
     <div class="landlord-page">
         <?php include __DIR__ . '/../includes/navbar.php'; ?>
 
@@ -36,41 +90,15 @@
                     </div>
                     <div style="flex: 1; overflow-y: auto;">
                         <?php
-                        $inquiries = [
-                            [
-                                'id' => 1,
-                                'tenant' => 'Sarah Johnson',
-                                'property' => 'Modern Studio Downtown',
-                                'message' => 'Hi, I am very interested in this property. Is it still available? I would love to schedule a viewing.',
-                                'time' => '2 hours ago',
-                                'avatar' => 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
-                                'email' => 'sarah.j@email.com',
-                                'phone' => '+1 (555) 123-4567',
-                                'unread' => true,
-                            ],
-                            [
-                                'id' => 2,
-                                'tenant' => 'Mike Chen',
-                                'property' => 'Cozy Apartment',
-                                'message' => 'Is this property available for February 1st? I am looking for a place near downtown.',
-                                'time' => '5 hours ago',
-                                'avatar' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-                                'email' => 'mike.chen@email.com',
-                                'phone' => '+1 (555) 234-5678',
-                                'unread' => true,
-                            ],
-                            [
-                                'id' => 3,
-                                'tenant' => 'Emily Rodriguez',
-                                'property' => 'Spacious Loft',
-                                'message' => 'Thank you for the quick response! Looking forward to viewing.',
-                                'time' => '1 day ago',
-                                'avatar' => 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
-                                'email' => 'emily.r@email.com',
-                                'phone' => '+1 (555) 345-6789',
-                                'unread' => false,
-                            ],
-                        ];
+                        // Inquiries already loaded from database at top of file
+                        if (empty($inquiries)):
+                        ?>
+                        <div style="padding: 4rem 1rem; text-align: center;">
+                            <i data-lucide="inbox" style="width: 3rem; height: 3rem; color: rgba(0,0,0,0.2); margin: 0 auto 1rem;"></i>
+                            <p style="color: rgba(0,0,0,0.5); font-size: 0.875rem;">No inquiries yet</p>
+                        </div>
+                        <?php
+                        endif;
 
                         foreach ($inquiries as $index => $inquiry): 
                             $isSelected = $index === 0; // Default select first
