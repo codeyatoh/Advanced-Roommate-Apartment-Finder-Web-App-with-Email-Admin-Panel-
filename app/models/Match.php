@@ -2,10 +2,10 @@
 require_once __DIR__ . '/BaseModel.php';
 
 /**
- * MatchModel
+ * Match Model
  * Handles roommate matching logic - pass/match actions and mutual match detection
  */
-class MatchModel extends BaseModel {
+class RoommateMatch extends BaseModel {
     protected $table = 'roommate_matches';
 
     /**

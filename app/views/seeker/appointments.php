@@ -227,8 +227,7 @@ foreach ($appointments as $apt) {
                 <div class="card card-glass" style="padding: 3rem; text-align: center;">
                     <i data-lucide="calendar-x" style="width: 4rem; height: 4rem; color: rgba(0,0,0,0.3); margin: 0 auto 1rem;"></i>
                     <h3 style="font-size: 1.25rem; font-weight: 700; color: #000000; margin-bottom: 0.5rem;">No Appointments Yet</h3>
-                    <p style="color: rgba(0,0,0,0.6); margin-bottom: 1.5rem;">Browse rooms and schedule viewings to get started!</p>
-                    <a href="browse_rooms.php" class="btn btn-primary">Browse Rooms</a>
+                    <p style="color: rgba(0,0,0,0.6);">Browse rooms and schedule viewings to get started!</p>
                 </div>
                 <?php endif; ?>
             </div>

@@ -242,3 +242,86 @@
     width: 1.25rem;
     height: 1.25rem;
 }
+
+/* ============================================ */
+/* RESPONSIVE ENHANCEMENTS */
+/* ============================================ */
+
+/* Mobile (< 768px) */
+@media (max-width: 767px) {
+    .form-group {
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .form-input {
+        padding: 0.875rem 1rem;
+        padding-left: 2.75rem;
+        font-size: 1rem; /* Prevent iOS zoom on focus */
+    }
+    
+    .form-label {
+        font-size: 0.875rem;
+    }
+    
+    /* Larger tap targets for mobile */
+    .btn {
+        min-height: var(--tap-target-min);
+        padding: 0.75rem 1.25rem;
+    }
+    
+    .btn-sm {
+        padding: 0.625rem 1rem;
+        min-height: 40px;
+    }
+    
+    .btn-lg {
+        padding: 1rem 2rem;
+        min-height: 52px;
+    }
+    
+    /* Larger checkbox for easier tapping */
+    .form-checkbox {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+    
+    /* Touch-friendly - disable hover effects */
+    .btn-primary:hover,
+    .btn-secondary:hover,
+    .btn-glass:hover {
+        transform: none;
+    }
+    
+    .btn-primary:active,
+    .btn-secondary:active {
+        transform: scale(0.98);
+    }
+}
+
+/* Small Phones - Larger touch targets */
+@media (max-width: 374px) {
+    .btn {
+        font-size: 0.9rem;
+    }
+    
+    .form-input {
+        padding: 0.75rem 0.875rem;
+        padding-left: 2.5rem;
+    }
+}
+
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .form-input {
+        padding: 0.75rem 1rem;
+        padding-left: 3rem;
+    }
+}
+
+/* Desktop (≥ 1024px) */
+@media (min-width: 1024px) {
+    /* Full hover effects on desktop */
+    .btn:hover {
+        cursor: pointer;
+    }
+}

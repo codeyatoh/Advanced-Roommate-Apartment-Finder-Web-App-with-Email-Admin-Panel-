@@ -87,7 +87,7 @@
                                         <label class="form-label">Price Range</label>
                                         <div style="display: flex; gap: 0.5rem;">
                                             <div class="form-input-wrapper">
-                                                <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: rgba(0,0,0,0.5); font-weight: 500;">$</span>
+                                                <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: rgba(0,0,0,0.5); font-weight: 500;">₱</span>
                                                 <input type="number" class="form-input" placeholder="Min" style="padding-left: 2rem;">
                                             </div>
                                             <div class="form-input-wrapper">
@@ -224,7 +224,7 @@
                                     <!-- Price -->
                                     <div style="padding-top: 0.75rem; border-top: 1px solid rgba(0, 0, 0, 0.1);">
                                         <div class="room-card-price">
-                                            <span>$<?php echo number_format($room['price'], 0); ?></span>
+                                            <span>₱<?php echo number_format($room['price'], 0); ?></span>
                                             <span class="room-card-price-period">/month</span>
                                         </div>
                                     </div>

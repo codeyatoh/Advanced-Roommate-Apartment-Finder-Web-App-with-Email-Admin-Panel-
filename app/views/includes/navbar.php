@@ -207,13 +207,115 @@ if ($role === 'room_seeker') {
                 </div>
                 <?php endif; ?>
                 <!-- Removed Logout Icon Button as Profile usually contains logout or it's separate -->
-                <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/controllers/AuthController.php?action=logout" class="btn btn-ghost btn-sm" title="Logout" style="color: #ef4444;">
+                <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/controllers/AuthController.php?action=logout" class="btn btn-ghost btn-sm" title="Logout" style="color: #ef4444; display: flex; align-items: center; justify-content: center;">
                     <i data-lucide="log-out" style="width: 1.25rem; height: 1.25rem;"></i>
                 </a>
             <?php else: ?>
                 <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/public/login.php" class="btn btn-ghost">Login</a>
                 <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/public/register.php" class="btn btn-primary">Sign Up</a>
             <?php endif; ?>
+        </div>
+
+        <!-- Burger Menu Toggle (Mobile Only) -->
+        <button class="navbar-burger" id="burgerMenuBtn" aria-label="Toggle menu">
+            <span class="burger-line"></span>
+            <span class="burger-line"></span>
+            <span class="burger-line"></span>
+        </button>
+    </div>
+
+    <!-- Mobile Overlay Menu -->
+    <div class="navbar-mobile-overlay" id="mobileOverlay">
+        <div class="mobile-menu-content">
+            <!-- Mobile Navigation Links -->
+            <nav class="mobile-nav">
+                <?php if ($role === 'room_seeker'): ?>
+                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/seeker/dashboard.php" class="mobile-nav-link">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/seeker/browse_rooms.php" class="mobile-nav-link">
+                        <i data-lucide="search"></i>
+                        <span>Browse</span>
+                    </a>
+                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/seeker/roommate_finder.php" class="mobile-nav-link">
+                        <i data-lucide="users"></i>
+                        <span>Roommates</span>
+                        <?php if ($notificationCount > 0): ?>
+                        <span class="mobile-notification-badge"><?php echo $notificationCount; ?></span>
+                        <?php endif; ?>
+                    </a>
+                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/seeker/appointments.php" class="mobile-nav-link">
+                        <i data-lucide="calendar"></i>
+                        <span>Appointments</span>
+                    </a>
+                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/seeker/messages.php" class="mobile-nav-link">
+                        <i data-lucide="message-square"></i>
+                        <span>Messages</span>
+                    </a>
+                <?php elseif ($role === 'landlord'): ?>
+                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/landlord/dashboard.php" class="mobile-nav-link">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/landlord/listings.php" class="mobile-nav-link">
+                        <i data-lucide="home"></i>
+                        <span>Listings</span>
+                    </a>
+                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/landlord/inquiries.php" class="mobile-nav-link">
+                        <i data-lucide="message-square"></i>
+                        <span>Inquiries</span>
+                    </a>
+                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/landlord/appointments.php" class="mobile-nav-link">
+                        <i data-lucide="calendar"></i>
+                        <span>Appointments</span>
+                    </a>
+                <?php elseif ($role === 'admin'): ?>
+                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/admin/dashboard.php" class="mobile-nav-link">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/admin/users.php" class="mobile-nav-link">
+                        <i data-lucide="users"></i>
+                        <span>Users</span>
+                    </a>
+                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/admin/listings.php" class="mobile-nav-link">
+                        <i data-lucide="home"></i>
+                        <span>Listings</span>
+                    </a>
+                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/admin/reports.php" class="mobile-nav-link">
+                        <i data-lucide="flag"></i>
+                        <span>Reports</span>
+                    </a>
+                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/admin/notifications.php" class="mobile-nav-link">
+                        <i data-lucide="bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                <?php endif; ?>
+            </nav>
+            
+            <!-- Mobile Actions -->
+            <div class="mobile-actions">
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <?php if ($role !== 'admin'): ?>
+                    <a href="<?php echo $profile_link; ?>" class="mobile-action-btn">
+                        <i data-lucide="settings"></i>
+                        <span>Profile Settings</span>
+                    </a>
+                    <?php endif; ?>
+                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/controllers/AuthController.php?action=logout" class="mobile-action-btn mobile-logout">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                <?php else: ?>
+                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/public/login.php" class="mobile-action-btn">
+                        <span>Login</span>
+                    </a>
+                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/public/register.php" class="mobile-action-btn">
+                        <span>Sign Up</span>
+                    </a>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 </nav>
@@ -501,6 +603,210 @@ if ($role === 'room_seeker') {
     background: rgba(30, 58, 138, 0.05);
 }
 
+/* ============================================ */
+/* BURGER MENU & MOBILE RESPONSIVE */
+/* ============================================ */
+
+/* Burger Menu Button */
+.navbar-burger {
+   display: none; /* Hidden by default, shown on mobile */
+    flex-direction: column;
+    justify-content: space-around;
+    width: 44px;
+    height: 44px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    z-index: 100;
+}
+
+.burger-line {
+    width: 24px;
+    height: 2px;
+    background: var(--deep-blue);
+    transition: all 0.3s ease;
+    transform-origin: center;
+}
+
+.navbar-burger.active .burger-line:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+.navbar-burger.active .burger-line:nth-child(2) {
+    opacity: 0;
+}
+
+.navbar-burger.active .burger-line:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Mobile Overlay */
+.navbar-mobile-overlay {
+    position: fixed;
+    top: 70px; /* Below navbar */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 90;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.navbar-mobile-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.mobile-menu-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border-radius: 0 0 1rem 1rem;
+    transform: translateY(-100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    max-height: calc(100vh - 70px);
+    padding: 1.5rem 0;
+}
+
+.navbar-mobile-overlay.active .mobile-menu-content {
+    transform: translateY(0);
+}
+
+/* Mobile Navigation */
+.mobile-nav {
+    display: flex;
+    flex-direction: column;
+    padding: 0 1rem;
+}
+
+.mobile-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    color: #374151;
+    text-decoration: none;
+    font-weight: 500;
+    border-bottom: 1px solid #f3f4f6;
+    transition: all 0.2s;
+    min-height: 60px; /* Tap target */
+    position: relative;
+}
+
+.mobile-nav-link:hover {
+    background: #f9fafb;
+    color: var(--deep-blue);
+}
+
+.mobile-nav-link i {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.mobile-notification-badge {
+    position: absolute;
+    right: 1rem;
+    background: #ef4444;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.375rem;
+}
+
+/* Mobile Actions */
+.mobile-actions {
+    padding: 1.5rem;
+    border-top: 2px solid #e5e7eb;
+    margin-top: 1rem;
+}
+
+.mobile-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    min-height: 52px; /* Comfortable tap target */
+}
+
+.mobile-action-btn:first-child {
+    background: var(--deep-blue);
+    color: white;
+}
+
+.mobile-action-btn:first-child:hover {
+    background: var(--soft-blue);
+}
+
+.mobile-action-btn.mobile-logout {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.mobile-action-btn.mobile-logout:hover {
+    background: #fecaca;
+}
+
+.mobile-action-btn i {
+    width: 20px;
+    height: 20px;
+}
+
+/* Responsive Visibility */
+@media (max-width: 767px) {
+    /* Hide desktop navigation on mobile */
+    .navbar-menu {
+        display: none !important;
+    }
+    
+    /* Hide desktop actions on mobile */
+    .navbar-actions .btn-notification,
+    .navbar-actions .btn-outline-profile,
+    .navbar-actions .btn-ghost,
+    .navbar-actions a[title="Logout"] {
+        display: none !important;
+    }
+    
+    /* Show burger menu */
+    .navbar-burger {
+        display: flex;
+    }
+}
+
+@media (min-width: 768px) {
+    /* Hide burger menu on desktop */
+    .navbar-burger {
+        display: none !important;
+    }
+    
+    /* Hide mobile overlay on desktop */
+    .navbar-mobile-overlay {
+        display: none !important;
+    }
+}
+
 </style>
 
 <script>
@@ -565,6 +871,57 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .catch(error => console.error('Error:', error));
+    }
+});
+
+// ============================================
+// BURGER MENU TOGGLE
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    const burgerBtn = document.getElementById('burgerMenuBtn');
+    const mobileOverlay = document.getElementById('mobileOverlay');
+    
+    if (burgerBtn && mobileOverlay) {
+        // Toggle menu
+        burgerBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            burgerBtn.classList.toggle('active');
+            mobileOverlay.classList.toggle('active');
+            
+            // Lock/unlock body scroll
+            if (mobileOverlay.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+            
+            // Re-initialize Lucide icons for mobile menu
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+        
+        // Close on overlay click (clicking outside menu)
+        mobileOverlay.addEventListener('click', function(e) {
+            if (e.target === mobileOverlay) {
+                burgerBtn.classList.remove('active');
+                mobileOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+        
+        // Close menu when clicking nav links (better UX)
+        const mobileNavLinks = mobileOverlay.querySelectorAll('.mobile-nav-link, .mobile-action-btn');
+        mobileNavLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                // Delay to allow navigation
+                setTimeout(() => {
+                    burgerBtn.classList.remove('active');
+                    mobileOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }, 100);
+            });
+        });
     }
 });
 </script>

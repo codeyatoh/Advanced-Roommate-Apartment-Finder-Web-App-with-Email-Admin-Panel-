@@ -122,4 +122,50 @@
     --z-modal: 50;
     --z-popover: 60;
     --z-tooltip: 70;
+
+    /* ============================================ */
+    /* RESPONSIVE DESIGN VARIABLES */
+    /* ============================================ */
+    
+    /* Breakpoints */
+    --breakpoint-xs: 320px;
+    --breakpoint-sm: 375px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 1024px;
+    --breakpoint-xl: 1440px;
+    --breakpoint-2xl: 1920px;
+
+    /* Fluid Typography - Mobile First */
+    --font-size-xs-mobile: 0.7rem;    /* 11.2px */
+    --font-size-sm-mobile: 0.8rem;    /* 12.8px */
+    --font-size-base-mobile: 0.875rem; /* 14px */
+    --font-size-lg-mobile: 1rem;      /* 16px */
+    --font-size-xl-mobile: 1.125rem;  /* 18px */
+    --font-size-2xl-mobile: 1.25rem;  /* 20px */
+    --font-size-3xl-mobile: 1.5rem;   /* 24px */
+    --font-size-4xl-mobile: 1.75rem;  /* 28px */
+
+    /* Fluid Spacing - Mobile First */
+    --spacing-xs-mobile: 0.25rem;  /* 4px */
+    --spacing-sm-mobile: 0.375rem; /* 6px */
+    --spacing-md-mobile: 0.75rem;  /* 12px */
+    --spacing-lg-mobile: 1rem;     /* 16px */
+    --spacing-xl-mobile: 1.25rem;  /* 20px */
+    --spacing-2xl-mobile: 1.75rem; /* 28px */
+
+    /* Touch Targets */
+    --tap-target-min: 44px;
+    --tap-target-comfortable: 48px;
+
+    /* Container Max Widths */
+    --container-sm: 640px;
+    --container-md: 768px;
+    --container-lg: 1024px;
+    --container-xl: 1280px;
+    --container-2xl: 1536px;
+
+    /* Mobile Menu */
+    --mobile-menu-width: 280px;
+    --navbar-height-mobile: 4rem;
+    --navbar-height-desktop: 4.5rem;
 }

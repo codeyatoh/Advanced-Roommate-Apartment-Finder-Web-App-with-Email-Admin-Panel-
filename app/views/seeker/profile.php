@@ -56,22 +56,30 @@ function getValue($array, $key, $default = '') {
                 <div class="column">
                     <!-- 1. Profile Section -->
                     <div class="profile-card">
-                        <div class="profile-header-content">
-                            <div class="profile-image-wrapper">
-                                <?php 
-                                $profilePhoto = getValue($user, 'profile_photo');
-                                $displayName = htmlspecialchars(getValue($user, 'first_name') . ' ' . getValue($user, 'last_name'));
-                                $photoUrl = !empty($profilePhoto) ? htmlspecialchars($profilePhoto) :  'https://ui-avatars.com/api/?name=' . urlencode($displayName) . '&background=10b981&color=fff&size=200';
-                                ?>
-                                <img src="<?php echo $photoUrl; ?>" alt="Profile" class="profile-image" id="profilePreview">
-                                <button type="button" class="camera-button" onclick="document.getElementById('photoInput').click()">
-                                    <i data-lucide="camera" style="width: 14px; height: 14px;"></i>
-                                </button>
+                        <?php 
+                        $profilePhoto = getValue($user, 'profile_photo');
+                        $displayName = htmlspecialchars(getValue($user, 'first_name') . ' ' . getValue($user, 'last_name'));
+                        $photoUrl = !empty($profilePhoto) ? htmlspecialchars($profilePhoto) :  'https://ui-avatars.com/api/?name=' . urlencode($displayName) . '&background=10b981&color=fff&size=200';
+                        ?>
+                        <div style="margin-bottom: 1.5rem;">
+                            <h2 class="profile-name"><?php echo $displayName; ?></h2>
+                            <p class="profile-occupation"><?php echo htmlspecialchars(getValue($profile, 'occupation', 'Update your occupation')); ?></p>
+                        </div>
+
+                        <div>
+                            <h3 class="card-title" style="font-size: 0.875rem; margin-bottom: 0.75rem;">Profile picture</h3>
+                            <div class="profile-upload-box" onclick="document.getElementById('photoInput').click()">
+                                <div class="profile-image-container-new">
+                                    <img src="<?php echo $photoUrl; ?>" alt="Profile" class="profile-image-new" id="profilePreview">
+                                    <div class="camera-badge-new">
+                                        <i data-lucide="camera" style="width: 14px; height: 14px;"></i>
+                                    </div>
+                                </div>
+                                <div class="upload-text-content">
+                                    <span class="upload-title">Drop your photo here or <span class="upload-link">Select a file</span></span>
+                                    <span class="upload-subtitle">Supports: JPG, PNG</span>
+                                </div>
                                 <input type="file" id="photoInput" name="profile_photo" accept="image/*" style="display: none;">
-                            </div>
-                            <div style="flex: 1;">
-                                <h2 class="profile-name"><?php echo $displayName; ?></h2>
-                                <p class="profile-occupation"><?php echo htmlspecialchars(getValue($profile, 'occupation', 'Update your occupation')); ?></p>
                             </div>
                         </div>
                     </div>
@@ -157,7 +165,7 @@ function getValue($array, $key, $default = '') {
                             <div>
                                 <label class="form-label">Monthly Budget ($)</label>
                                 <div class="input-wrapper">
-                                    <i data-lucide="dollar-sign" class="input-icon"></i>
+                                    <i data-lucide="coins" class="input-icon"></i>
                                     <input type="number" name="budget" class="form-input" value="<?php echo htmlspecialchars(getValue($profile, 'budget')); ?>" step="50">
                                 </div>
                             </div>

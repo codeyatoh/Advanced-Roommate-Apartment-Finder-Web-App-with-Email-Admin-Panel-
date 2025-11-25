@@ -9,7 +9,7 @@ $userId = $_SESSION['user_id'] ?? 1; // Fallback for development
 $userName = $_SESSION['first_name'] ?? 'User';
 
 $userModel = new User();
-$matchModel = new MatchModel();
+$matchModel = new RoommateMatch();
 
 // Get profile completion
 $completion = $userModel->getProfileCompletion($userId);

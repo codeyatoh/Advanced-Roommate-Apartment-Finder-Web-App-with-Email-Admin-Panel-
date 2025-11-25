@@ -108,7 +108,7 @@ $recommendedListings = $listingModel->getAvailable(2); // Get 2 listings
                                             <div class="room-card-detail"><i data-lucide="users"></i><?php echo intval($room['current_roommates'] ?? 0); ?> roommates</div>
                                         </div>
                                         <div style="padding-top: 0.75rem; border-top: 1px solid rgba(0,0,0,0.1);">
-                                            <div class="room-card-price"><span>$<?php echo number_format($room['price'], 0); ?></span><span class="room-card-price-period">/month</span></div>
+                                            <div class="room-card-price"><span>₱<?php echo number_format($room['price'], 0); ?></span><span class="room-card-price-period">/month</span></div>
                                         </div>
                                     </div>
                                 </div>

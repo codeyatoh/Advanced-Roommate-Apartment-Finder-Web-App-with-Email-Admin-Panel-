@@ -38,18 +38,6 @@ $profile = [
         ['icon' => 'cigarette', 'label' => 'Non-smoker', 'value' => true],
         ['icon' => 'paw-print', 'label' => 'Pet-friendly', 'value' => true],
         ['icon' => 'coffee', 'label' => 'Social drinker', 'value' => true],
-        ['icon' => 'users', 'label' => 'Overnight guests OK', 'value' => true],
-        ['icon' => 'coffee', 'label' => 'Shares groceries', 'value' => true],
-        ['icon' => 'check-circle', 'label' => 'Follows cleaning schedule', 'value' => true],
-    ],
-    'lookingFor' => [
-        'moveInDate' => 'February 2024',
-        'budget' => '$1000-1400',
-        'location' => 'Downtown SF, Mission, SOMA',
-        'roomType' => 'Private room',
-        'leaseTerm' => '12 months',
-    ]
-];
 ?>
 <!DOCTYPE html>
 <html lang="en">

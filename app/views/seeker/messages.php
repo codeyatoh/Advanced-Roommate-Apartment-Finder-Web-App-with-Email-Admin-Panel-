@@ -10,7 +10,7 @@ $userId = $_SESSION['user_id'] ?? 1;
 
 $messageModel = new Message();
 $userModel = new User();
-$matchModel = new MatchModel();
+$matchModel = new RoommateMatch();
 
 // Get all conversations (grouped by other user)
 $conversations = $messageModel->getConversations($userId);
@@ -77,15 +77,30 @@ if ($selectedConversationId) {
                     <p style="color: rgba(0, 0, 0, 0.6);">Chat with landlords and potential roommates</p>
                 </div>
 
+
                 <?php if (empty($conversations)): ?>
-                <!-- Empty State -->
-                <div class="card card-glass" style="padding: 3rem; text-align: center;">
-                    <i data-lucide="message-square-x" style="width: 4rem; height: 4rem; color: rgba(0,0,0,0.3); margin: 0 auto 1rem;"></i>
-                    <h3 style="font-size: 1.25rem; font-weight: 700; color: #000000; margin-bottom: 0.5rem;">No Messages Yet</h3>
-                    <p style="color: rgba(0,0,0,0.6); margin-bottom: 1.5rem;">Start matching with roommates or contact landlords to begin conversations!</p>
-                    <div style="display: flex; gap: 1rem; justify-content: center;">
-                        <a href="roommate_finder.php" class="btn btn-primary">Find Roommates</a>
-                        <a href="browse_rooms.php" class="btn btn-glass">Browse Rooms</a>
+                <!-- Empty State with Two-Panel Layout --><div class="card card-glass messages-container" style="padding: 0; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+                    <div class="messages-grid">
+                        <!-- Conversations Panel -->
+                        <div class="conversations-panel">
+                            <div class="conversations-search">
+                                <div style="position: relative;">
+                                    <i data-lucide="search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); width: 1.25rem; height: 1.25rem; color: rgba(0,0,0,0.4); z-index: 10;"></i>
+                                    <input type="text" class="form-input" placeholder="Search messages..." style="padding-left: 2.25rem; padding-top: 0.5rem; padding-bottom: 0.5rem; font-size: 0.875rem;" id="searchMessages">
+                                </div>
+                            </div>
+                            <div style="padding: 4rem 1rem; text-align: center;">
+                                <i data-lucide="inbox" style="width: 3rem; height: 3rem; color: rgba(0,0,0,0.2); margin: 0 auto 1rem;"></i>
+                                <p style="color: rgba(0,0,0,0.5); font-size: 0.875rem;">No messages yet</p>
+                            </div>
+                        </div>
+
+                        <!-- Empty Chat Panel -->
+                        <div class="chat-panel" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 4rem 2rem; text-align: center;">
+                            <i data-lucide="message-square" style="width: 4rem; height: 4rem; color: rgba(0,0,0,0.2); margin-bottom: 1rem;"></i>
+                            <h3 style="color: rgba(0,0,0,0.6); margin: 0 0 0.5rem 0; font-size: 1.125rem;">No message selected</h3>
+                            <p style="color: rgba(0,0,0,0.5); margin: 0; font-size: 0.875rem;">Start matching with roommates or contact landlords to begin conversations!</p>
+                        </div>
                     </div>
                 </div>
                 <?php else: ?>

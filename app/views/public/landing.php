@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/get_featured_rooms.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -88,13 +89,18 @@
 
         <!-- Hero Section with Carousel -->
         <section class="hero-section">
+            <div class="back-to-login">
+                <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/public/login.php" class="back-to-login-link">
+                    ← Back to Login
+                </a>
+            </div>
             <div class="hero-container">
                 <div class="carousel">
                     <div class="carousel-container">
                         <div class="carousel-slides">
                             <!-- Slide 1: Find Your Perfect Room Today -->
                             <div class="carousel-slide active">
-                                <img src="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/images/modern-apartment.jpg" alt="Modern apartment interior" />
+                                <img src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=1600&h=900&fit=crop" alt="Modern open living space" />
                                 <div class="carousel-overlay carousel-overlay-gradient-dark">
                                     <div class="carousel-content">
                                         <h1 class="carousel-title">Find Your Perfect Room Today</h1>
@@ -142,13 +148,6 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Carousel Navigation Dots -->
-                        <div class="carousel-dots">
-                            <button class="carousel-dot active" aria-label="Go to slide 1"></button>
-                            <button class="carousel-dot" aria-label="Go to slide 2"></button>
-                            <button class="carousel-dot" aria-label="Go to slide 3"></button>
                         </div>
 
                         <!-- Carousel Arrows -->
@@ -201,39 +200,105 @@
             </div>
         </section>
 
-        <!-- Featured Rooms Section -->
+        <!-- Featured Rooms Section - Connected to Database -->
         <section id="featured-rooms" class="featured-rooms-section">
             <div class="featured-rooms-container">
-                <div class="features-container">
-                    <div class="card card-glass-strong" style="padding: 3rem;">
-                        <div class="features-header">
-                            <h2 class="features-title">Why Choose RoomFinder?</h2>
+                <div class="featured-rooms-header">
+                    <h2 class="featured-rooms-title">Featured Rooms</h2>
+                    <p class="featured-rooms-description">Discover the best available rooms in your area</p>
+                </div>
+
+                <div class="featured-rooms-grid">
+                    <?php if (!empty($featuredListings)): ?>
+                        <?php foreach ($featuredListings as $index => $listing): ?>
+                            <div class="animate-slide-up" style="animation-delay: <?php echo ($index * 0.1); ?>s;">
+                                <div class="room-card">
+                                    <div class="room-card-image-wrapper">
+                                        <img src="<?php echo getListingImage($listing); ?>" alt="<?php echo htmlspecialchars($listing['title']); ?>" class="room-card-image">
+                                        <button class="room-card-favorite" onclick="event.preventDefault();">
+                                            <i data-lucide="heart"></i>
+                                        </button>
+                                        <div class="room-card-badge"><?php echo getAvailabilityBadge($listing); ?></div>
+                                    </div>
+                                    <div class="room-card-content">
+                                        <h3 class="room-card-title"><?php echo htmlspecialchars($listing['title']); ?></h3>
+                                        <div class="room-card-location">
+                                            <i data-lucide="map-pin"></i>
+                                            <?php echo htmlspecialchars($listing['location']); ?>
+                                        </div>
+                                        <div class="room-card-details">
+                                            <div class="room-card-detail">
+                                                <i data-lucide="bed"></i>
+                                                <?php echo $listing['bedrooms'] ?? 1; ?> bed
+                                            </div>
+                                            <div class="room-card-detail">
+                                                <i data-lucide="bath"></i>
+                                                <?php echo $listing['bathrooms'] ?? 1; ?> bath
+                                            </div>
+                                            <div class="room-card-detail">
+                                                <i data-lucide="users"></i>
+                                                <?php echo $listing['current_roommates'] ?? 0; ?> roommates
+                                            </div>
+                                        </div>
+                                        <div style="padding-top: 0.75rem; border-top: 1px solid rgba(0, 0, 0, 0.1);">
+                                            <div class="room-card-price">
+                                                <span><?php echo formatPrice($listing['price']); ?></span>
+                                                <span class="room-card-price-period">/month</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <!-- No listings fallback -->
+                        <div class="col-span-full text-center" style="grid-column: 1 / -1; padding: 3rem;">
+                            <i data-lucide="home" style="width: 4rem; height: 4rem; margin: 0 auto 1rem; color: rgba(0,0,0,0.3);"></i>
+                            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">No Listings Available</h3>
+                            <p style="color: rgba(0,0,0,0.6);">Check back soon for new room listings!</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="featured-rooms-cta">
+                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/public/register.php" class="btn btn-login btn-lg">
+                        View All Rooms
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Why Choose RoomFinder Section -->
+        <section id="features" class="features-section">
+            <div class="features-container">
+                <div class="card card-glass-strong" style="padding: 3rem;">
+                    <div class="features-header">
+                        <h2 class="features-title">Why Choose RoomFinder?</h2>
+                    </div>
+
+                    <div class="features-grid">
+                        <div class="card card-glass-subtle feature-card">
+                            <i data-lucide="shield" class="feature-icon"></i>
+                            <h3 class="feature-title">Verified Listings</h3>
+                            <p class="feature-description">All properties are verified for your safety</p>
                         </div>
 
-                        <div class="features-grid">
-                            <div class="card card-glass-subtle feature-card">
-                                <i data-lucide="shield" class="feature-icon"></i>
-                                <h3 class="feature-title">Verified Listings</h3>
-                                <p class="feature-description">All properties are verified for your safety</p>
-                            </div>
+                        <div class="card card-glass-subtle feature-card">
+                            <i data-lucide="star" class="feature-icon"></i>
+                            <h3 class="feature-title">Trusted Reviews</h3>
+                            <p class="feature-description">Read real reviews from previous tenants</p>
+                        </div>
 
-                            <div class="card card-glass-subtle feature-card">
-                                <i data-lucide="star" class="feature-icon"></i>
-                                <h3 class="feature-title">Trusted Reviews</h3>
-                                <p class="feature-description">Read real reviews from previous tenants</p>
-                            </div>
+                        <div class="card card-glass-subtle feature-card">
+                            <i data-lucide="users" class="feature-icon"></i>
+                            <h3 class="feature-title">Smart Matching</h3>
+                            <p class="feature-description">Find compatible roommates with AI</p>
+                        </div>
 
-                            <div class="card card-glass-subtle feature-card">
-                                <i data-lucide="users" class="feature-icon"></i>
-                                <h3 class="feature-title">Smart Matching</h3>
-                                <p class="feature-description">Find compatible roommates with AI</p>
-                            </div>
-
-                            <div class="card card-glass-subtle feature-card">
-                                <i data-lucide="trending-up" class="feature-icon"></i>
-                                <h3 class="feature-title">Best Prices</h3>
-                                <p class="feature-description">Competitive rates with no hidden fees</p>
-                            </div>
+                        <div class="card card-glass-subtle feature-card">
+                            <i data-lucide="trending-up" class="feature-icon"></i>
+                            <h3 class="feature-title">Best Prices</h3>
+                            <p class="feature-description">Competitive rates with no hidden fees</p>
                         </div>
                     </div>
                 </div>
@@ -314,9 +379,14 @@
 
     <!-- Mobile Menu Toggle -->
     <script>
-        document.querySelector('.navbar-mobile-toggle').addEventListener('click', function() {
-            document.querySelector('.navbar-mobile-menu').classList.toggle('active');
-        });
+        const mobileToggle = document.querySelector('.navbar-mobile-toggle');
+        const mobileMenu = document.querySelector('.navbar-mobile-menu');
+        
+        if (mobileToggle && mobileMenu) {
+            mobileToggle.addEventListener('click', function() {
+                mobileMenu.classList.toggle('active');
+            });
+        }
     </script>
 </body>
 

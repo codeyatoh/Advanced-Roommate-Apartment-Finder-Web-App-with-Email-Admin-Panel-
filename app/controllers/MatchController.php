@@ -7,7 +7,7 @@ class MatchController {
     private $matchModel;
 
     public function __construct() {
-        $this->matchModel = new MatchModel();
+        $this->matchModel = new RoommateMatch();
     }
 
     /**

@@ -59,7 +59,7 @@
                             <div>
                                 <label class="form-label">Monthly Rent</label>
                                 <div style="position: relative;">
-                                    <i data-lucide="dollar-sign" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); width: 1.25rem; height: 1.25rem; color: rgba(0,0,0,0.4);"></i>
+                                    <i data-lucide="coins" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); width: 1.25rem; height: 1.25rem; color: rgba(0,0,0,0.4);"></i>
                                     <input type="number" class="form-input" placeholder="1200" style="padding-left: 2.75rem;" required>
                                 </div>
                             </div>

@@ -74,12 +74,50 @@
     gap: var(--spacing-lg);
 }
 
+/* ============================================ */
+/* RESPONSIVE ENHANCEMENTS */
+/* ============================================ */
+
+/* Mobile (< 768px) */
+@media (max-width: 767px) {
+    .card {
+        padding: var(--spacing-md-mobile);
+    }
+    
+    .card-title {
+        font-size: clamp(1rem, 0.95rem + 0.5vw, 1.125rem);
+    }
+    
+    .card-description {
+        font-size: clamp(0.75rem, 0.7rem + 0.25vw, 0.8rem);
+    }
+    
+    /* Touch-friendly - disable hover, use active */
+    .card-hover:hover {
+        transform: none;
+    }
+    
+    .card-hover:active {
+        transform: scale(0.98);
+    }
+    
+    .card-grid {
+        gap: var(--spacing-md);
+    }
+}
+
+/* Tablet (768px - 1023px) */
 @media (min-width: 768px) {
+    .card {
+        padding: var(--spacing-lg);
+    }
+    
     .card-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
+/* Desktop (≥ 1024px) */
 @media (min-width: 1024px) {
     .card-grid-3 {
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -87,5 +125,16 @@
 
     .card-grid-4 {
         grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+/* Large Desktop (≥ 1440px) */
+@media (min-width: 1440px) {
+    .card {
+        padding: var(--spacing-xl);
+    }
+    
+    .card-grid {
+        gap: var(--spacing-xl);
     }
 }

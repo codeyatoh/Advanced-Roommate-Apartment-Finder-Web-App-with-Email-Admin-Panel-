@@ -138,22 +138,6 @@
                         <div style="flex-shrink: 0;">
                             <img src="<?php echo $listing['image']; ?>" alt="<?php echo $listing['title']; ?>" class="listing-image">
                         </div>
-
-                        <!-- Content -->
-                        <div style="flex: 1; min-width: 0;">
-                            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.75rem;">
-                                <div style="flex: 1; min-width: 0;">
-                                    <h3 style="font-size: 1.25rem; font-weight: 700; color: #000; margin-bottom: 0.5rem;"><?php echo $listing['title']; ?></h3>
-                                    <div style="display: flex; align-items: center; gap: 0.375rem; font-size: 0.875rem; color: rgba(0,0,0,0.6); margin-bottom: 0.75rem;">
-                                        <i data-lucide="map-pin" style="width: 1rem; height: 1rem; flex-shrink: 0;"></i>
-                                        <span><?php echo $listing['location']; ?></span>
-                                    </div>
-                                </div>
-                                <span class="status-badge <?php echo $statusClass; ?>" style="flex-shrink: 0;">
-                                    <?php echo ucfirst($listing['status']); ?>
-                                </span>
-                            </div>
-
                             <!-- Landlord Info -->
                             <div class="glass-subtle" style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; padding: 0.75rem;">
                                 <img src="<?php echo $listing['landlordAvatar']; ?>" alt="<?php echo $listing['landlord']; ?>" style="width: 2.5rem; height: 2.5rem; border-radius: 9999px; object-fit: cover;">
@@ -168,11 +152,11 @@
                             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem;">
                                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                                     <div style="width: 2rem; height: 2rem; background-color: rgba(30, 58, 138, 0.2); border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
-                                        <i data-lucide="dollar-sign" style="width: 1rem; height: 1rem; color: var(--deep-blue);"></i>
+                                        <i data-lucide="coins" style="width: 1rem; height: 1rem; color: var(--deep-blue);"></i>
                                     </div>
                                     <div>
                                         <p style="font-size: 0.75rem; color: rgba(0,0,0,0.5);">Price</p>
-                                        <p style="font-size: 0.875rem; font-weight: 600; color: #000;">$<?php echo $listing['price']; ?>/mo</p>
+                                        <p style="font-size: 0.875rem; font-weight: 600; color: #000;">₱<?php echo $listing['price']; ?>/mo</p>
                                     </div>
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 0.5rem;">

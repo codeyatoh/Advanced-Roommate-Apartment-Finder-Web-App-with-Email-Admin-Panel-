@@ -41,7 +41,7 @@ class SeekerProfile extends BaseModel {
         $data['user_id'] = $userId;
         
         if ($existing) {
-            return $this->update($existing['seeker_profile_id'], $data);
+            return $this->update($existing['profile_id'], $data);
         } else {
             return $this->create($data);
         }
@@ -76,7 +76,7 @@ class SeekerProfile extends BaseModel {
         }
         
         if (!empty($filters['location'])) {
-            $sql .= " AND sp.location LIKE :location";
+            $sql .= " AND sp.preferred_location LIKE :location";
             $params[':location'] = '%' . $filters['location'] . '%';
         }
         

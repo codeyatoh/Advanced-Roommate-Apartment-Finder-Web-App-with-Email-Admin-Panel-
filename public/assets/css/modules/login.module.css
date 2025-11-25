@@ -1,4 +1,4 @@
-/* Login/Register Page Styles */
+/* Login/Register Page - Fully Responsive */
 
 .auth-page {
     min-height: 100vh;
@@ -178,12 +178,6 @@
     gap: 1.5rem;
 }
 
-@media (min-width: 768px) {
-    .role-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
 .role-card {
     padding: 2rem;
     text-align: center;
@@ -252,7 +246,6 @@
     flex-shrink: 0;
 }
 
-/* Registration Form Header */
 .registration-header {
     margin-bottom: 1.5rem;
 }
@@ -310,7 +303,6 @@
     margin: 0;
 }
 
-/* Terms Checkbox */
 .terms-checkbox {
     display: flex;
     align-items: flex-start;
@@ -350,5 +342,62 @@
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+/* ============================================ */
+/* RESPONSIVE ENHANCEMENTS */
+/* ============================================ */
+
+/* Mobile (< 768px) */
+@media (max-width: 767px) {
+    .auth-container {
+        max-width: 100%;
+    }
+    
+    .auth-card {
+        padding: 1.5rem;
+    }
+    
+    .auth-title {
+        font-size: 1.5rem;
+    }
+    
+    .social-buttons {
+        grid-template-columns: 1fr;
+    }
+    
+    .role-card {
+        padding: 1.5rem;
+    }
+    
+    .role-icon {
+        width: 4rem;
+        height: 4rem;
+    }
+    
+    .role-title {
+        font-size: 1.25rem;
+    }
+    
+    .auth-options {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+}
+
+/* Tablet (768px+) */
+@media (min-width: 768px) {
+    .role-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Desktop (1024px+) - Hover effects active */
+@media (min-width: 1024px) {
+    .social-btn:hover,
+    .role-card:hover {
+        cursor: pointer;
     }
 }

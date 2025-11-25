@@ -108,11 +108,7 @@ foreach ($listings as &$listing) {
                 <div style="grid-column: 1/-1; text-align: center; padding: 4rem 1rem;">
                     <i data-lucide="home" style="width: 4rem; height: 4rem; color: rgba(0,0,0,0.2); margin: 0 auto 1rem;"></i>
                     <h3 style="color: rgba(0,0,0,0.6); margin: 0;">No listings yet</h3>
-                    <p style="color: rgba(0,0,0,0.5); margin: 0.5rem 0 1.5rem 0;">Create your first listing to get started</p>
-                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/landlord/add_listing.php" class="btn btn-primary">
-                        <i data-lucide="plus" style="width: 1rem; height: 1rem;"></i>
-                        Add New Listing
-                    </a>
+                    <p style="color: rgba(0,0,0,0.5); margin: 0.5rem 0 0 0;">Create your first listing to get started</p>
                 </div>
                 <?php
                 endif;
@@ -162,7 +158,7 @@ foreach ($listings as &$listing) {
                                 <?php echo $listing['views']; ?> views
                             </div>
                             <div style="display: flex; align-items: center; gap: 0.25rem;">
-                                <i data-lucide="dollar-sign" style="width: 1rem; height: 1rem;"></i>
+                                <i data-lucide="coins" style="width: 1rem; height: 1rem;"></i>
                                 <?php echo $listing['inquiries']; ?> inquiries
                             </div>
                         </div>
@@ -170,7 +166,7 @@ foreach ($listings as &$listing) {
                         <!-- Price -->
                         <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.2);">
                             <div>
-                                <span style="font-size: 1.5rem; font-weight: 700; color: var(--deep-blue);">$<?php echo $listing['price']; ?></span>
+                                <span style="font-size: 1.5rem; font-weight: 700; color: var(--deep-blue);">₱<?php echo $listing['price']; ?></span>
                                 <span style="font-size: 0.875rem; color: rgba(0,0,0,0.6);">/month</span>
                             </div>
                         </div>

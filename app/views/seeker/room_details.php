@@ -156,10 +156,10 @@
                         <div class="card card-glass-strong booking-card" style="padding: 1.5rem;">
                             <div style="margin-bottom: 1.5rem;">
                                 <div class="booking-price">
-                                    <span class="booking-price-amount">$1,200</span>
+                                    <span class="booking-price-amount">₱1,200</span>
                                     <span class="booking-price-period">/month</span>
                                 </div>
-                                <p class="booking-price-note">Utilities included • Security deposit: $1,200</p>
+                                <p class="booking-price-note">Utilities included • Security deposit: ₱1,200</p>
                             </div>
 
                             <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">

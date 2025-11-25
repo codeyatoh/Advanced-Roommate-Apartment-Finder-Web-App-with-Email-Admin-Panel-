@@ -138,10 +138,10 @@
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
                             <div class="glass-subtle" style="padding: 1rem; border-radius: 0.75rem;">
                                 <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                                    <i data-lucide="dollar-sign" style="width: 1.25rem; height: 1.25rem; color: var(--deep-blue);"></i>
+                                    <i data-lucide="coins" style="width: 1.25rem; height: 1.25rem; color: var(--deep-blue);"></i>
                                     <p style="font-size: 0.875rem; color: rgba(0,0,0,0.6);">Monthly Revenue</p>
                                 </div>
-                                <p style="font-size: 1.5rem; font-weight: 700; color: #000;">$<?php echo number_format($monthlyRevenue, 0); ?></p>
+                                <p style="font-size: 1.5rem; font-weight: 700; color: #000;">₱<?php echo number_format($monthlyRevenue, 0); ?></p>
                                 <div style="display: flex; align-items: center; gap: 0.25rem; margin-top: 0.25rem;">
                                     <span style="font-size: 0.75rem; color: rgba(0,0,0,0.6);">From <?php echo count($activeListings); ?> active listings</span>
                                 </div>
