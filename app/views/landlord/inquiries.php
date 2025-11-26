@@ -11,9 +11,13 @@
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/globals.css">
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/navbar.module.css">
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/landlord.module.css">
+    <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/messaging-shared.module.css">
 </head>
 <body>
 <?php
+// Set timezone to Philippine Time
+date_default_timezone_set('Asia/Manila');
+
 // Start session and load models
 session_start();
 require_once __DIR__ . '/../../models/Message.php';
@@ -78,6 +82,15 @@ foreach ($inquiries as &$inquiry) {
     $inquiry['message'] = $inquiry['last_message'];
     $inquiry['unread'] = $inquiry['unread_count'] > 0;
 }
+
+// Get full conversation for first inquiry (if exists)
+$firstInquiryMessages = [];
+if (!empty($inquiries)) {
+    $firstInquiryMessages = $messageModel->getConversation(
+        $landlordId,
+        $inquiries[0]['other_user_id']
+    );
+}
 ?>
     <div class="landlord-page">
         <?php include __DIR__ . '/../includes/navbar.php'; ?>
@@ -91,9 +104,8 @@ foreach ($inquiries as &$inquiry) {
                 </div>
             </div>
 
-            <div class="inquiries-layout animate-slide-up">
-                <!-- Inquiries List -->
-                <div class="inquiries-sidebar">
+            <div class="messaging-container inquiries-layout animate-slide-up">
+                <div class="messaging-sidebar inquiries-sidebar">
                     <div style="padding: 0.75rem; border-bottom: 1px solid rgba(0,0,0,0.1);">
                         <div style="position: relative;">
                             <i data-lucide="search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); width: 1.25rem; height: 1.25rem; color: rgba(0,0,0,0.4); z-index: 10;"></i>
@@ -136,23 +148,36 @@ foreach ($inquiries as &$inquiry) {
                     </div>
                 </div>
 
-                <!-- Inquiry Details -->
-                <div class="inquiries-main">
+                <div class="messaging-main inquiries-main">
                     <?php if (!empty($inquiries)): ?>
-                    <!-- Header -->
-                    <div style="padding: 1rem; border-bottom: 1px solid rgba(0,0,0,0.1);">
+                    <div class="messaging-header" style="padding-bottom: 0;">
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
                             <div style="display: flex; align-items: center; gap: 0.75rem;">
                                 <img id="detailAvatar" src="<?php echo $inquiries[0]['avatar']; ?>" alt="" style="width: 2.5rem; height: 2.5rem; border-radius: 9999px; object-fit: cover;">
                                 <div>
                                     <h3 id="detailTenant" style="font-weight: 600; color: #000;"><?php echo $inquiries[0]['tenant']; ?></h3>
-                                    <p id="detailProperty" style="font-size: 0.75rem; color: rgba(0,0,0,0.6);"><?php echo $inquiries[0]['property']; ?></p>
+                                    <!-- Old property line removed to avoid duplicate ID -->
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 0.5rem;">
                                 <!-- Buttons removed as per request -->
                             </div>
                         </div>
+                        
+                        <!-- Context Banner -->
+                        <div style="background-color: var(--softBlue-20); padding: 0.75rem; border-radius: 0.5rem; display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                            <div style="width: 3rem; height: 3rem; background: #fff; border-radius: 0.25rem; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                                <i data-lucide="home" style="width: 1.5rem; height: 1.5rem; color: var(--primary);"></i>
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <p style="font-size: 0.75rem; color: rgba(0,0,0,0.6); margin: 0;">Inquiry regarding:</p>
+                                <p id="detailProperty" style="font-size: 0.875rem; font-weight: 600; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    <?php echo $inquiries[0]['property']; ?>
+                                </p>
+                            </div>
+                            <a id="detailLink" href="view_listing.php?id=<?php echo $inquiries[0]['listing_id'] ?? '#'; ?>" class="btn btn-ghost btn-sm" style="font-size: 0.75rem; text-decoration: none;">View Room</a>
+                        </div>
+
                         <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.75rem; color: rgba(0,0,0,0.6);">
                             <div style="display: flex; align-items: center; gap: 0.25rem;">
                                 <i data-lucide="mail" style="width: 0.75rem; height: 0.75rem;"></i>
@@ -165,20 +190,28 @@ foreach ($inquiries as &$inquiry) {
                         </div>
                     </div>
 
-                    <!-- Message Content -->
-                    <div style="flex: 1; overflow-y: auto; padding: 1rem;">
-                        <div style="max-width: 80%; background-color: rgba(96, 165, 250, 0.3); border-radius: 1rem; padding: 0.75rem 1rem;">
-                            <p id="detailMessage" style="font-size: 0.875rem; color: #000; line-height: 1.625; margin-bottom: 0.5rem;">
-                                <?php echo $inquiries[0]['message']; ?>
-                            </p>
-                            <p id="detailTime" style="font-size: 0.75rem; color: rgba(0,0,0,0.5);">
-                                <?php echo $inquiries[0]['time']; ?>
-                            </p>
+                    <div class="messaging-content" id="chatMessages">
+                        <?php if (empty($firstInquiryMessages)): ?>
+                            <div style="text-align: center; padding: 2rem; color: rgba(0,0,0,0.4);">
+                                <p>No messages yet in this conversation.</p>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <?php foreach ($firstInquiryMessages as $msg): 
+                            $isSent = $msg['sender_id'] == $landlordId;
+                            $timestamp = new DateTime($msg['created_at']);
+                            $timeDisplay = $timestamp->format('g:i A');
+                        ?>
+                        <div style="margin-bottom: 1rem; <?php echo $isSent ? 'display: flex; justify-content: flex-end;' : ''; ?>">
+                            <div style="max-width: 80%; <?php echo !$isSent ? 'background-color: rgba(96, 165, 250, 0.3);' : 'background-color: var(--deep-blue); color: white;'; ?> border-radius: 1rem; padding: 0.75rem 1rem;">
+                                <p style="font-size: 0.875rem; <?php echo $isSent ? 'color: white;' : 'color: #000;'; ?> line-height: 1.625; margin: 0 0 0.5rem 0;"><?php echo nl2br(htmlspecialchars($msg['message_content'])); ?></p>
+                                <p style="font-size: 0.75rem; <?php echo $isSent ? 'color: rgba(255,255,255,0.7);' : 'color: rgba(0,0,0,0.5);'; ?> margin: 0;"><?php echo $timeDisplay; ?></p>
+                            </div>
                         </div>
+                        <?php endforeach; ?>
                     </div>
 
-                    <!-- Reply Input -->
-                    <div style="padding: 1rem; border-top: 1px solid rgba(0,0,0,0.1);">
+                    <div class="messaging-input">
                         <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
                             <button type="button" title="Attach file" style="background: none; border: none; padding: 0.5rem; cursor: pointer; color: rgba(0,0,0,0.6); transition: color 0.2s;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='rgba(0,0,0,0.6)'">
                                 <i data-lucide="paperclip" style="width: 1.25rem; height: 1.25rem;"></i>
@@ -186,13 +219,13 @@ foreach ($inquiries as &$inquiry) {
                             <button type="button" title="Attach image" style="background: none; border: none; padding: 0.5rem; cursor: pointer; color: rgba(0,0,0,0.6); transition: color 0.2s;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='rgba(0,0,0,0.6)'">
                                 <i data-lucide="image" style="width: 1.25rem; height: 1.25rem;"></i>
                             </button>
+                            <button type="button" title="Emoji" style="background: none; border: none; padding: 0.5rem; cursor: pointer; color: rgba(0,0,0,0.6); transition: color 0.2s;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='rgba(0,0,0,0.6)'">
+                                <i data-lucide="smile" style="width: 1.25rem; height: 1.25rem;"></i>
+                            </button>
                             <div style="flex: 1; position: relative;">
-                                <button type="button" title="Emoji" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 0; cursor: pointer; color: rgba(0,0,0,0.6); transition: color 0.2s; z-index: 1;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='rgba(0,0,0,0.6)'">
-                                    <i data-lucide="smile" style="width: 1.25rem; height: 1.25rem;"></i>
-                                </button>
-                                <input type="text" class="form-input" placeholder="Type your reply..." style="width: 100%; padding-left: 2.75rem; font-size: 0.875rem;">
+                                <input type="text" id="messageInput" class="form-input" placeholder="Type your reply..." style="width: 100%; padding-left: 1rem; font-size: 0.875rem;">
                             </div>
-                            <button class="btn btn-primary btn-sm">
+                            <button id="sendBtn" class="btn btn-primary btn-sm">
                                 <i data-lucide="send" style="width: 1rem; height: 1rem;"></i>
                                 Send
                             </button>
@@ -215,6 +248,58 @@ foreach ($inquiries as &$inquiry) {
     <script>
         lucide.createIcons();
 
+        let currentReceiverId = null;
+        let currentListingId = null;
+
+        // Helper function to render a single message
+        function renderMessage(msg, isSent) {
+            const timestamp = new Date(msg.created_at);
+            const timeDisplay = timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+            
+            const alignment = isSent ? 'display: flex; justify-content:flex-end;' : '';
+            const bgColor = isSent ? 'background-color: var(--deep-blue); color: white;' : 'background-color: rgba(96, 165, 250, 0.3);';
+            const textColor = isSent ? 'color: white;' : 'color: #000;';
+            const timeColor = isSent ? 'color: rgba(255,255,255,0.7);' : 'color: rgba(0,0,0,0.5);';
+            
+            return `
+                <div style="margin-bottom: 1rem; ${alignment}" data-message-id="${msg.message_id}">
+                    <div style="max-width: 80%; ${bgColor} border-radius: 1rem; padding: 0.75rem 1rem;">
+                        <p style="font-size: 0.875rem; ${textColor} line-height: 1.625; margin: 0 0 0.5rem 0;">${msg.message_content.replace(/\n/g, '<br>')}</p>
+                        <p style="font-size: 0.75rem; ${timeColor} margin: 0;">${timeDisplay}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Function to fetch and display conversation
+        async function fetchConversation(otherUserId) {
+            try {
+                const response = await fetch(`/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/controllers/MessageController.php?action=getConversation&other_user_id=${otherUserId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const chatMessages = document.getElementById('chatMessages');
+                    const landlordId = <?php echo $landlordId; ?>;
+                    
+                    if (result.messages.length === 0) {
+                        chatMessages.innerHTML = '<div style="text-align: center; padding: 2rem; color: rgba(0,0,0,0.4);"><p>No messages yet in this conversation.</p></div>';
+                    } else {
+                        chatMessages.innerHTML = result.messages.map(msg => {
+                            const isSent = msg.sender_id == landlordId;
+                            return renderMessage(msg, isSent);
+                        }).join('');
+                        
+                        // Scroll to bottom
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
+                } else {
+                    console.error('Failed to fetch conversation:', result.message);
+                }
+            } catch (error) {
+                console.error('Error fetching conversation:', error);
+            }
+        }
+
         function selectInquiry(element, data) {
             // Update UI selection
             document.querySelectorAll('.inquiry-item-container').forEach(el => {
@@ -222,15 +307,179 @@ foreach ($inquiries as &$inquiry) {
             });
             element.style.backgroundColor = 'rgba(96, 165, 250, 0.3)';
 
+            // Stop current polling
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+
+            // Store current context
+            currentReceiverId = data.other_user_id;
+            currentListingId = data.listing_id;
+
             // Update Details View
             document.getElementById('detailAvatar').src = data.avatar;
             document.getElementById('detailTenant').textContent = data.tenant;
             document.getElementById('detailProperty').textContent = data.property;
             document.getElementById('detailEmail').textContent = data.email;
             document.getElementById('detailPhone').textContent = data.phone;
-            document.getElementById('detailMessage').textContent = data.message;
-            document.getElementById('detailTime').textContent = data.time;
+            
+            // Fetch and display full conversation
+            fetchConversation(data.other_user_id).then(() => {
+                // Reset lastMessageId based on fetched conversation
+                const chatMessages = document.getElementById('chatMessages');
+                const allMessages = chatMessages.querySelectorAll('[data-message-id]');
+                if (allMessages.length > 0) {
+                    lastMessageId = Math.max(...Array.from(allMessages).map(el => parseInt(el.dataset.messageId)));
+                } else {
+                    lastMessageId = 0;
+                }
+                
+                // Restart polling for new conversation
+                pollingInterval = setInterval(checkForNewMessages, 3000);
+            });
+            
+            // Update Link
+            const link = document.getElementById('detailLink');
+            if (data.listing_id) {
+                link.href = 'view_listing.php?id=' + data.listing_id;
+                link.style.display = 'inline-flex';
+            } else {
+                link.style.display = 'none';
+            }
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const sendBtn = document.getElementById('sendBtn');
+            const messageInput = document.getElementById('messageInput');
+
+            // Real-time messaging variables  
+            let lastMessageId = <?php 
+                if (!empty($firstInquiryMessages)) {
+                    echo max(array_column($firstInquiryMessages, 'message_id'));
+                } else {
+                    echo '0';
+                }
+            ?>;
+            let pollingInterval = null;
+            const landlordId = <?php echo $landlordId; ?>;
+
+            // Auto-select first inquiry on page load
+            <?php if (!empty($inquiries)): ?>
+            currentReceiverId = <?php echo $inquiries[0]['other_user_id']; ?>;
+            currentListingId = <?php echo $inquiries[0]['listing_id'] ?? 'null'; ?>;
+            <?php endif; ?>
+
+            // Poll for new messages
+            async function checkForNewMessages() {
+                if (!currentReceiverId) return;
+                
+                try {
+                    const response = await fetch(`/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/controllers/MessageController.php?action=getNewMessages&other_user_id=${currentReceiverId}&last_message_id=${lastMessageId}`);
+                    const result = await response.json();
+                    
+                    if (result.success && result.messages.length > 0) {
+                        result.messages.forEach(msg => {
+                            const isSent = msg.sender_id == landlordId;
+                            chatMessages.insertAdjacentHTML('beforeend', renderMessage(msg, isSent));
+                            lastMessageId = Math.max(lastMessageId, msg.message_id);
+                        });
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
+                } catch (error) {
+                    console.error('Error checking for new messages:', error);
+                }
+            }
+
+            // Start polling
+            function startPolling() {
+                if (currentReceiverId && !pollingInterval) {
+                    pollingInterval = setInterval(checkForNewMessages, 3000);
+                }
+            }
+
+            // Stop polling
+            function stopPolling() {
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
+            }
+
+            async function sendMessage() {
+                const message = messageInput.value.trim();
+                
+                if (!message) return;
+                if (!currentReceiverId) {
+                    alert('Please select an inquiry first.');
+                    return;
+                }
+
+                // Disable UI
+                sendBtn.disabled = true;
+                messageInput.disabled = true;
+
+                try {
+                    const response = await fetch('/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/controllers/MessageController.php?action=send', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            receiver_id: currentReceiverId,
+                            message: message,
+                            listing_id: currentListingId
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // Clear input
+                        messageInput.value = '';
+                        
+                        // Append message immediately
+                        const newMsg = {
+                            message_id: Date.now(),
+                            sender_id: landlordId,
+                            message_content: message,
+                            created_at: new Date().toISOString()
+                        };
+                        chatMessages.insertAdjacentHTML('beforeend', renderMessage(newMsg, true));
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                        
+                        // Re-enable UI
+                        sendBtn.disabled = false;
+                        messageInput.disabled = false;
+                    } else {
+                        alert(result.message || 'Failed to send message');
+                        sendBtn.disabled = false;
+                        messageInput.disabled = false;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while sending the message');
+                    sendBtn.disabled = false;
+                    messageInput.disabled = false;
+                }
+            }
+
+            if (sendBtn && messageInput) {
+                sendBtn.addEventListener('click', sendMessage);
+
+                messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        sendMessage();
+                    }
+                });
+            }
+
+            // Start polling on page load
+            startPolling();
+
+            // Stop polling when leaving the page
+            window.addEventListener('beforeunload', stopPolling);
+        });
     </script>
 </body>
 </html>

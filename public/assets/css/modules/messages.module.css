@@ -7,7 +7,8 @@
 .messages-grid {
     display: grid;
     grid-template-columns: 1fr;
-    height: 650px;
+    max-height: 650px;
+    height: 100%;
 }
 
 /* Conversations List */
@@ -291,7 +292,8 @@
 @media (max-width: 767px) {
     .messages-grid {
         grid-template-columns: 1fr;
-        height: calc(100vh - 5rem); /* Full height minus navbar */
+        max-height: calc(100vh - 5rem);
+        height: 100%;
     }
     
     /* On mobile, show either conversations OR chat */
@@ -353,7 +355,8 @@
 @media (min-width: 1024px) {
     .messages-grid {
         grid-template-columns: 360px 1fr;
-        height: 700px;
+        max-height: 700px;
+        height: 100%;
     }
     
     .chat-messages {
@@ -365,6 +368,7 @@
 @media (min-width: 1440px) {
     .messages-grid {
         grid-template-columns: 400px 1fr;
-        height: 750px;
+        max-height: 750px;
+        height: 100%;
     }
 }

@@ -1,4 +1,7 @@
 <?php
+// Set timezone to Philippine Time
+date_default_timezone_set('Asia/Manila');
+
 // Start session and load models
 session_start();
 require_once __DIR__ . '/../../models/Message.php';
@@ -66,6 +69,7 @@ if ($selectedConversationId) {
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/cards.module.css">
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/forms.module.css">
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/messages.module.css">
+    <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/messaging-shared.module.css">
 </head>
 <body>
     <div style="min-height: 100vh; background: linear-gradient(to bottom right, var(--softBlue-20), var(--neutral), var(--deepBlue-10));">
@@ -78,7 +82,7 @@ if ($selectedConversationId) {
                 </div>
 
 
-                <?php if (empty($conversations)): ?>
+                <?php if (empty($conversations) && !$selectedUser): ?>
                 <!-- Empty State with Two-Panel Layout --><div class="card card-glass messages-container" style="padding: 0; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
                     <div class="messages-grid">
                         <!-- Conversations Panel -->
@@ -104,8 +108,8 @@ if ($selectedConversationId) {
                     </div>
                 </div>
                 <?php else: ?>
-                <div class="card card-glass messages-container" style="padding: 0; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
-                    <div class="messages-grid">
+                <div class="messaging-container card card-glass" style="box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+                    <div class="messaging-layout">
                         <!-- Conversations Panel -->
                         <div class="conversations-panel">
                             <div class="conversations-search">
@@ -173,10 +177,18 @@ if ($selectedConversationId) {
                             $selectedRole = $selectedUser['role'] ?? 'seeker';
                             $selectedBadgeLabel = $selectedRole === 'landlord' ? 'Landlord' : 'Matched';
                             $selectedBadgeClass = $selectedRole === 'landlord' ? 'landlord' : 'seeker';
+
+                            // Get Listing Context
+                            $listingContext = null;
+                            $listingId = $_GET['listing_id'] ?? null;
+                            if ($listingId) {
+                                require_once __DIR__ . '/../../models/Listing.php';
+                                $listingModel = new Listing();
+                                $listingContext = $listingModel->getById($listingId);
+                            }
                         ?>
-                        <div class="chat-panel">
-                            <!-- Header -->
-                            <div style="padding: 1rem; border-bottom: 1px solid rgba(0,0,0,0.1);">
+                        <div class="messaging-main chat-panel">
+                            <div class="messaging-header" style="padding-bottom: 0;">
                                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
                                     <div style="display: flex; align-items: center; gap: 0.75rem;">
                                         <img src="<?php echo $selectedAvatar; ?>" alt="<?php echo $selectedUserName; ?>" style="width: 2.5rem; height: 2.5rem; border-radius: 9999px; object-fit: cover;">
@@ -186,20 +198,51 @@ if ($selectedConversationId) {
                                                 <span class="role-badge <?php echo $selectedBadgeClass; ?>"><?php echo $selectedBadgeLabel; ?></span>
                                             </div>
                                             <?php 
-                                            // Get listing title if exists in conversation
+                                            // Get listing title from context or conversation history
                                             $listingTitle = '';
-                                            foreach ($conversations as $conv) {
-                                                if ($conv['other_user_id'] == $selectedConversationId && !empty($conv['listing_title'])) {
-                                                    $listingTitle = $conv['listing_title'];
-                                                    break;
+                                            if ($listingContext) {
+                                                $listingTitle = $listingContext['title'];
+                                            } else {
+                                                foreach ($conversations as $conv) {
+                                                    if ($conv['other_user_id'] == $selectedConversationId && !empty($conv['listing_title'])) {
+                                                        $listingTitle = $conv['listing_title'];
+                                                        break;
+                                                    }
                                                 }
                                             }
+                                            
                                             if ($listingTitle): ?>
-                                            <p style="font-size: 0.75rem; color: rgba(0,0,0,0.6); margin: 0;"><?php echo htmlspecialchars($listingTitle); ?></p>
+                                            <p style="font-size: 0.75rem; color: rgba(0,0,0,0.6); margin: 0;">
+                                                <?php echo $listingContext ? 'Inquiring about: ' : 'Regarding: '; ?>
+                                                <span style="font-weight: 600;"><?php echo htmlspecialchars($listingTitle); ?></span>
+                                            </p>
                                             <?php endif; ?>
                                         </div>
                                     </div>
                                 </div>
+                                
+                                <!-- Context Banner -->
+                                <?php if ($listingContext): ?>
+                                <div style="background-color: var(--softBlue-20); padding: 0.75rem; border-radius: 0.5rem; display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                                    <div style="width: 3rem; height: 3rem; background: #fff; border-radius: 0.25rem; overflow: hidden; flex-shrink: 0;">
+                                        <?php 
+                                        // We need to fetch image if not in getById, but for now placeholder or simple check
+                                        // Ideally getWithImages should be used or a separate query, but let's keep it simple for now
+                                        ?>
+                                        <i data-lucide="home" style="width: 1.5rem; height: 1.5rem; margin: 0.75rem; color: var(--primary);"></i>
+                                    </div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <p style="font-size: 0.875rem; font-weight: 600; margin: 0 0 0.125rem 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            <?php echo htmlspecialchars($listingContext['title']); ?>
+                                        </p>
+                                        <p style="font-size: 0.75rem; color: rgba(0,0,0,0.6); margin: 0;">
+                                            ₱<?php echo number_format($listingContext['price']); ?>/mo • <?php echo htmlspecialchars($listingContext['location']); ?>
+                                        </p>
+                                    </div>
+                                    <a href="room_details.php?id=<?php echo $listingContext['listing_id']; ?>" class="btn btn-ghost btn-sm" style="font-size: 0.75rem; text-decoration: none;">View Room</a>
+                                </div>
+                                <?php endif; ?>
+
                                 <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.75rem; color: rgba(0,0,0,0.6);">
                                     <div style="display: flex; align-items: center; gap: 0.25rem;">
                                         <i data-lucide="mail" style="width: 0.75rem; height: 0.75rem;"></i>
@@ -214,8 +257,13 @@ if ($selectedConversationId) {
                                 </div>
                             </div>
 
-                            <!-- Message Content -->
-                            <div style="flex: 1; overflow-y: auto; padding: 1rem;" id="chatMessages">
+                            <div class="messaging-content" id="chatMessages">
+                                <?php if (empty($messages)): ?>
+                                    <div style="text-align: center; padding: 2rem; color: rgba(0,0,0,0.4);">
+                                        <p>No messages yet. Start the conversation!</p>
+                                    </div>
+                                <?php endif; ?>
+                                
                                 <?php foreach ($messages as $msg): 
                                     $isSent = $msg['sender_id'] == $userId;
                                     $timestamp = new DateTime($msg['created_at']);
@@ -231,21 +279,27 @@ if ($selectedConversationId) {
                                 <?php endforeach; ?>
                             </div>
 
-                            <!-- Reply Input -->
-                            <div style="padding: 1rem; border-top: 1px solid rgba(0,0,0,0.1);">
+                            <div class="messaging-input">
                                 <form id="messageForm" style="display: flex; gap: 0.5rem;">
                                     <input type="hidden" name="receiver_id" value="<?php echo $selectedConversationId; ?>">
+                                    <?php if ($listingContext): ?>
+                                        <input type="hidden" name="listing_id" value="<?php echo $listingContext['listing_id']; ?>">
+                                    <?php endif; ?>
+                                    
                                     <button type="button" title="Attach file" style="background: none; border: none; padding: 0.5rem; cursor: pointer; color: rgba(0,0,0,0.6); transition: color 0.2s;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='rgba(0,0,0,0.6)'">
                                         <i data-lucide="paperclip" style="width: 1.25rem; height: 1.25rem;"></i>
                                     </button>
                                     <button type="button" title="Attach image" style="background: none; border: none; padding: 0.5rem; cursor: pointer; color: rgba(0,0,0,0.6); transition: color 0.2s;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='rgba(0,0,0,0.6)'">
                                         <i data-lucide="image" style="width: 1.25rem; height: 1.25rem;"></i>
                                     </button>
+                                    <button type="button" title="Emoji" style="background: none; border: none; padding: 0.5rem; cursor: pointer; color: rgba(0,0,0,0.6); transition: color 0.2s;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='rgba(0,0,0,0.6)'">
+                                        <i data-lucide="smile" style="width: 1.25rem; height: 1.25rem;"></i>
+                                    </button>
                                     <div style="flex: 1; position: relative;">
-                                        <button type="button" title="Emoji" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 0; cursor: pointer; color: rgba(0,0,0,0.6); transition: color 0.2s; z-index: 1;" onmouseover="this.style.color='#000'" onmouseout="this.style.color='rgba(0,0,0,0.6)'">
-                                            <i data-lucide="smile" style="width: 1.25rem; height: 1.25rem;"></i>
-                                        </button>
-                                        <input type="text" name="message" class="form-input" placeholder="Type your reply..." style="width: 100%; padding-left: 2.75rem; font-size: 0.875rem;" id="messageInput" autocomplete="off">
+                                        <input type="text" name="message" class="form-input" 
+                                               placeholder="Type your reply..." 
+                                               value="<?php echo $listingContext && empty($messages) ? 'Hi, I am interested in ' . htmlspecialchars($listingContext['title']) . '. Is it still available?' : ''; ?>"
+                                               style="width: 100%; padding-left: 1rem; font-size: 0.875rem;" id="messageInput" autocomplete="off">
                                     </div>
                                     <button type="submit" class="btn btn-primary btn-sm">
                                         <i data-lucide="send" style="width: 1rem; height: 1rem;"></i>
@@ -279,6 +333,80 @@ if ($selectedConversationId) {
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
+        // Real-time messaging variables
+        let lastMessageId = <?php 
+            if (!empty($messages)) {
+                echo max(array_column($messages, 'message_id'));
+            } else {
+                echo '0';
+            }
+        ?>;
+        let pollingInterval = null;
+        const currentUserId = <?php echo $userId; ?>;
+        const receiverId = <?php echo $selectedConversationId ?? 'null'; ?>;
+
+        // Helper function to render a message
+        function renderMessage(msg, isSent) {
+            const timestamp = new Date(msg.created_at);
+            const timeDisplay = timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+            
+            const alignment = isSent ? 'display: flex; justify-content: flex-end;' : '';
+            const bgColor = isSent ? 'background-color: var(--deep-blue); color: white;' : 'background-color: rgba(96, 165, 250, 0.3);';
+            const textColor = isSent ? 'color: white;' : 'color: #000;';
+            const timeColor = isSent ? 'color: rgba(255,255,255,0.7);' : 'color: rgba(0,0,0,0.5);';
+            
+            return `
+                <div style="margin-bottom: 1rem; ${alignment}">
+                    <div style="max-width: 80%; ${bgColor} border-radius: 1rem; padding: 0.75rem 1rem;">
+                        <p style="font-size: 0.875rem; ${textColor} line-height: 1.625; margin: 0 0 0.5rem 0;">${msg.message_content.replace(/\n/g, '<br>')}</p>
+                        <p style="font-size: 0.75rem; ${timeColor} margin: 0;">${timeDisplay}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Append message to chat
+        function appendMessage(msg) {
+            if (!chatMessages) return;
+            const isSent = msg.sender_id == currentUserId;
+            chatMessages.insertAdjacentHTML('beforeend', renderMessage(msg, isSent));
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Poll for new messages
+        async function checkForNewMessages() {
+            if (!receiverId) return;
+            
+            try {
+                const response = await fetch(`../../controllers/MessageController.php?action=getNewMessages&other_user_id=${receiverId}&last_message_id=${lastMessageId}`);
+                const result = await response.json();
+                
+                if (result.success && result.messages.length > 0) {
+                    result.messages.forEach(msg => {
+                        appendMessage(msg);
+                        lastMessageId = Math.max(lastMessageId, msg.message_id);
+                    });
+                }
+            } catch (error) {
+                console.error('Error checking for new messages:', error);
+            }
+        }
+
+        // Start polling
+        function startPolling() {
+            if (receiverId && !pollingInterval) {
+                pollingInterval = setInterval(checkForNewMessages, 3000);
+            }
+        }
+
+        // Stop polling
+        function stopPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        }
+
         // Handle message form submission
         const messageForm = document.getElementById('messageForm');
         if (messageForm) {
@@ -287,15 +415,47 @@ if ($selectedConversationId) {
                 
                 const messageInput = document.getElementById('messageInput');
                 const message = messageInput.value.trim();
-                const receiverId = messageForm.querySelector('[name="receiver_id"]').value;
+                const receiverIdInput = messageForm.querySelector('[name="receiver_id"]').value;
+                const listingIdInput = messageForm.querySelector('[name="listing_id"]');
+                const listingId = listingIdInput ? listingIdInput.value : null;
                 
                 if (!message) return;
                 
-                // TODO: Send message via AJAX to MessageController
-                console.log('Sending message:', message, 'to user:', receiverId);
-                
-                // For now, just reload the page
-                window.location.reload();
+                // Send message via AJAX to MessageController
+                try {
+                    const response = await fetch('../../controllers/MessageController.php?action=send', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            receiver_id: receiverIdInput,
+                            message: message,
+                            listing_id: listingId
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Clear input
+                        messageInput.value = '';
+                        
+                        // Append message immediately
+                        const newMsg = {
+                            message_id: Date.now(), // Temporary ID
+                            sender_id: currentUserId,
+                            message_content: message,
+                            created_at: new Date().toISOString()
+                        };
+                        appendMessage(newMsg);
+                    } else {
+                        alert('Failed to send message: ' + (data.message || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                    alert('An error occurred while sending the message.');
+                }
             });
         }
 
@@ -318,6 +478,12 @@ if ($selectedConversationId) {
                 });
             });
         }
+
+        // Start polling on page load
+        startPolling();
+
+        // Stop polling when leaving the page
+        window.addEventListener('beforeunload', stopPolling);
     </script>
 </body>
 </html>
