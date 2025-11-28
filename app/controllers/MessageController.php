@@ -147,9 +147,9 @@ class MessageController {
         $stmt->bindValue(':user2_dup', $otherUserId, PDO::PARAM_INT);
         $stmt->bindValue(':user1_dup', $currentUserId, PDO::PARAM_INT);
         $stmt->execute();
-        $newMessages = $stmt->fetchAll();
+        $newMessages = $stmt->fetchAll(PDO::FETCH_ASSOC); // Ensure associative array
 
-        echo json_encode(['success' => true, 'messages' => $newMessages]);
+        echo json_encode(['success' => true, 'messages' => $newMessages ?: []]);
         exit;
     }
 }

@@ -148,37 +148,50 @@ $savedListings = $savedListingModel->getSavedListings($userId);
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
                                 <div>
                                     <h3 style="font-size: 1rem; font-weight: 700; color: #000000; margin: 0 0 0.125rem 0;">Roommate Matches</h3>
-                                    <p style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); margin: 0;">Other room seekers</p>
+                                    <p style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); margin: 0;">Your mutual matches</p>
                                 </div>
-                                <button class="btn btn-ghost btn-sm" style="font-size: 0.75rem;">See All</button>
+                                <button class="btn btn-ghost btn-sm" style="font-size: 0.75rem;" onclick="window.location.href='roommate_finder.php'">Find More</button>
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 0.625rem;">
                                 <?php 
-                                // Fetch other room seekers from database
-                                $matches = $userModel->getOtherSeekers($userId, 3);
+                                // Fetch mutual matches
+                                require_once __DIR__ . '/../../models/Match.php';
+                                $matchModel = new RoommateMatch();
+                                $matches = $matchModel->getMutualMatches($userId);
                                 
                                 if (empty($matches)) {
-                                    echo '<p style="color: rgba(0,0,0,0.5); text-align: center; padding: 1rem;">No other seekers found yet.</p>';
-                                }
-                                
-                                foreach ($matches as $match): 
-                                    $fullName = htmlspecialchars($match['first_name'] . ' ' . $match['last_name']);
-                                    $occupation = htmlspecialchars($match['occupation'] ?? 'Room Seeker');
-                                    $photo = !empty($match['profile_photo']) 
-                                        ? htmlspecialchars($match['profile_photo']) 
-                                        : 'https://ui-avatars.com/api/?name=' . urlencode($fullName) . '&background=10b981&color=fff';
-                                ?>
-                                <div style="display: flex; align-items: center; gap: 0.625rem; padding: 0.75rem; background: var(--glass-bg-subtle); border-radius: 0.75rem; cursor: pointer;">
-                                    <img src="<?php echo $photo; ?>" alt="<?php echo $fullName; ?>" style="width: 2.75rem; height: 2.75rem; border-radius: 9999px; object-fit: cover;">
-                                    <div style="flex: 1; min-width: 0;">
-                                        <p style="font-weight: 600; font-size: 0.875rem; color: #000000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 0.125rem 0;"><?php echo $fullName; ?></p>
-                                        <p style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); margin: 0;"><?php echo $occupation; ?></p>
+                                    echo '<div style="text-align: center; padding: 1.5rem 1rem;">
+                                            <div style="width: 3rem; height: 3rem; background: rgba(0,0,0,0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem;">
+                                                <i data-lucide="users" style="width: 1.5rem; height: 1.5rem; color: rgba(0,0,0,0.4);"></i>
+                                            </div>
+                                            <p style="color: rgba(0,0,0,0.6); font-size: 0.875rem; margin-bottom: 0.5rem;">No matches yet</p>
+                                            <a href="roommate_finder.php" style="color: var(--primary); font-size: 0.875rem; font-weight: 600; text-decoration: none;">Start Swiping</a>
+                                          </div>';
+                                } else {
+                                    foreach (array_slice($matches, 0, 3) as $match): 
+                                        $fullName = htmlspecialchars($match['first_name'] . ' ' . $match['last_name']);
+                                        $occupation = htmlspecialchars($match['occupation'] ?? 'Room Seeker');
+                                        $photo = !empty($match['profile_photo']) 
+                                            ? htmlspecialchars($match['profile_photo']) 
+                                            : 'https://ui-avatars.com/api/?name=' . urlencode($fullName) . '&background=10b981&color=fff';
+                                    ?>
+                                    <div style="display: flex; align-items: center; gap: 0.625rem; padding: 0.75rem; background: var(--glass-bg-subtle); border-radius: 0.75rem;">
+                                        <a href="match_profile.php?user_id=<?php echo $match['match_user_id']; ?>" style="display: flex; align-items: center; gap: 0.625rem; flex: 1; min-width: 0; text-decoration: none; color: inherit;">
+                                            <div style="position: relative;">
+                                                <img src="<?php echo $photo; ?>" alt="<?php echo $fullName; ?>" style="width: 2.75rem; height: 2.75rem; border-radius: 9999px; object-fit: cover;">
+                                                <div style="position: absolute; bottom: -2px; right: -2px; width: 10px; height: 10px; background: #10b981; border: 2px solid white; border-radius: 50%;"></div>
+                                            </div>
+                                            <div style="flex: 1; min-width: 0;">
+                                                <p style="font-weight: 600; font-size: 0.875rem; color: #000000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 0.125rem 0;"><?php echo $fullName; ?></p>
+                                                <p style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); margin: 0;"><?php echo $occupation; ?></p>
+                                            </div>
+                                        </a>
+                                        <a href="messages.php?user_id=<?php echo $match['match_user_id']; ?>" style="width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; background: rgba(16,185,129,0.1); border-radius: 0.5rem; transition: background 0.2s; text-decoration: none;" onmouseover="this.style.background='rgba(16,185,129,0.2)'" onmouseout="this.style.background='rgba(16,185,129,0.1)'">
+                                            <i data-lucide="message-square" style="width: 1rem; height: 1rem; color: #10b981;"></i>
+                                        </a>
                                     </div>
-                                    <div>
-                                        <i data-lucide="message-square" style="width: 1rem; height: 1rem; color: #10b981;"></i>
-                                    </div>
-                                </div>
-                                <?php endforeach; ?>
+                                    <?php endforeach; 
+                                } ?>
                             </div>
                         </div>
 

@@ -52,6 +52,31 @@ if ($selectedConversationId) {
     if ($selectedUser && $selectedUser['role'] === 'landlord') {
         $relationshipType = 'landlord';
     }
+
+    // Check if selected user is in conversations list
+    $isInList = false;
+    foreach ($conversations as $conv) {
+        if ($conv['other_user_id'] == $selectedConversationId) {
+            $isInList = true;
+            break;
+        }
+    }
+
+    // If not in list, add temporary conversation item
+    if (!$isInList && $selectedUser) {
+        $tempConv = [
+            'other_user_id' => $selectedUser['user_id'],
+            'other_user_name' => $selectedUser['first_name'] . ' ' . $selectedUser['last_name'],
+            'other_user_photo' => $selectedUser['profile_photo'],
+            'other_user_role' => $selectedUser['role'],
+            'last_message' => 'Start a conversation',
+            'last_message_time' => date('Y-m-d H:i:s'),
+            'is_read' => 1,
+            'unread_count' => 0,
+            'listing_title' => null
+        ];
+        array_unshift($conversations, $tempConv);
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -378,13 +403,16 @@ if ($selectedConversationId) {
             if (!receiverId) return;
             
             try {
-                const response = await fetch(`../../controllers/MessageController.php?action=getNewMessages&other_user_id=${receiverId}&last_message_id=${lastMessageId}`);
+                const response = await fetch(`/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/controllers/MessageController.php?action=getNewMessages&other_user_id=${receiverId}&last_message_id=${lastMessageId}`);
                 const result = await response.json();
                 
                 if (result.success && result.messages.length > 0) {
                     result.messages.forEach(msg => {
-                        appendMessage(msg);
-                        lastMessageId = Math.max(lastMessageId, msg.message_id);
+                        // Prevent duplicates if any
+                        if (msg.message_id > lastMessageId) {
+                            appendMessage(msg);
+                            lastMessageId = Math.max(lastMessageId, parseInt(msg.message_id));
+                        }
                     });
                 }
             } catch (error) {
@@ -395,7 +423,7 @@ if ($selectedConversationId) {
         // Start polling
         function startPolling() {
             if (receiverId && !pollingInterval) {
-                pollingInterval = setInterval(checkForNewMessages, 3000);
+                pollingInterval = setInterval(checkForNewMessages, 2000); // Poll every 2 seconds
             }
         }
 
@@ -423,7 +451,7 @@ if ($selectedConversationId) {
                 
                 // Send message via AJAX to MessageController
                 try {
-                    const response = await fetch('../../controllers/MessageController.php?action=send', {
+                    const response = await fetch('/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/controllers/MessageController.php?action=send', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

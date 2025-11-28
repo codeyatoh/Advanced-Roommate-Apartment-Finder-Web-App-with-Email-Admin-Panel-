@@ -1,0 +1,6 @@
+SQLSTATE[HY093]: Invalid parameter number
+#0 C:\wamp64\www\Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-\app\models\Match.php(116): PDOStatement->execute()
+#1 C:\wamp64\www\Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-\app\models\Match.php(38): RoommateMatch->checkAndUpdateMutualMatch(5, '1')
+#2 C:\wamp64\www\Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-\app\controllers\MatchController.php(40): RoommateMatch->recordAction(5, '1', 'match')
+#3 C:\wamp64\www\Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-\app\controllers\MatchController.php(112): MatchController->recordAction()
+#4 {main}

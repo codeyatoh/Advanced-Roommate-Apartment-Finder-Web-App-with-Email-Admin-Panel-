@@ -380,9 +380,12 @@ if (!empty($inquiries)) {
                     
                     if (result.success && result.messages.length > 0) {
                         result.messages.forEach(msg => {
-                            const isSent = msg.sender_id == landlordId;
-                            chatMessages.insertAdjacentHTML('beforeend', renderMessage(msg, isSent));
-                            lastMessageId = Math.max(lastMessageId, msg.message_id);
+                            // Prevent duplicates
+                            if (msg.message_id > lastMessageId) {
+                                const isSent = msg.sender_id == landlordId;
+                                chatMessages.insertAdjacentHTML('beforeend', renderMessage(msg, isSent));
+                                lastMessageId = Math.max(lastMessageId, parseInt(msg.message_id));
+                            }
                         });
                         chatMessages.scrollTop = chatMessages.scrollHeight;
                     }
@@ -394,7 +397,7 @@ if (!empty($inquiries)) {
             // Start polling
             function startPolling() {
                 if (currentReceiverId && !pollingInterval) {
-                    pollingInterval = setInterval(checkForNewMessages, 3000);
+                    pollingInterval = setInterval(checkForNewMessages, 2000); // Poll every 2 seconds
                 }
             }
 

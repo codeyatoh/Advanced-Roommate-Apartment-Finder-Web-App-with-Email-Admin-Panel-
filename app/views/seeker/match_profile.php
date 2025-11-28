@@ -1,43 +1,86 @@
 <?php
-// Mock Data
+session_start();
+require_once __DIR__ . '/../../models/User.php';
+
+// Get user ID from URL
+$userId = $_GET['user_id'] ?? 1;
+$userModel = new User();
+$user = $userModel->getUserWithProfile($userId);
+
+// Redirect if user not found
+if (!$user) {
+    header('Location: roommate_finder.php');
+    exit;
+}
+
+// Parse profile data
+$profileData = $user['profile'] ?? [];
+$preferences = !empty($profileData['preferences']) ? json_decode($profileData['preferences'], true) : [];
+
+// Calculate Age
+$age = 'N/A';
+if (!empty($user['birthdate'])) {
+    $birthDate = new DateTime($user['birthdate']);
+    $today = new DateTime();
+    $age = $birthDate->diff($today)->y;
+}
+
+// Map data to view structure
 $profile = [
-    'id' => 1,
-    'name' => 'Sarah Johnson',
-    'age' => 25,
-    'occupation' => 'Software Engineer',
-    'location' => 'San Francisco, CA',
-    'memberSince' => 'January 2024',
-    'responseRate' => 95,
-    'responseTime' => '2 hours',
+    'id' => $user['user_id'],
+    'name' => $user['first_name'] . ' ' . $user['last_name'],
+    'age' => $age,
+    'occupation' => $profileData['occupation'] ?? 'Room Seeker',
+    'location' => $profileData['preferred_location'] ?? 'Not specified',
+    'memberSince' => date('F Y', strtotime($user['created_at'])),
+    'responseRate' => 100, // Placeholder
+    'responseTime' => 'Within a day', // Placeholder
     'images' => [
-        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800',
-        'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800',
-        'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=800',
+        !empty($user['profile_photo']) ? $user['profile_photo'] : 'https://ui-avatars.com/api/?name=' . urlencode($user['first_name'] . ' ' . $user['last_name']) . '&background=10b981&color=fff&size=800'
     ],
-    'bio' => "Hey! I'm Sarah, a software engineer who loves staying active and exploring the city. I work from home a few days a week, so I appreciate a quiet space during the day. In my free time, you'll find me at yoga class, trying new coffee shops, or hiking on weekends. I'm looking for a roommate who values cleanliness, open communication, and creating a positive living environment together.",
+    'bio' => $user['bio'] ?? 'No bio available.',
     'compatibility' => [
-        'overall' => 92,
-        'lifestyle' => 95,
-        'cleanliness' => 90,
-        'schedule' => 88,
-        'social' => 94,
+        'overall' => 95, // Placeholder logic for now
+        'lifestyle' => 90,
+        'cleanliness' => 85,
+        'schedule' => 92,
+        'social' => 88,
     ],
-    'interests' => [
-        'Hiking', 'Yoga', 'Coffee', 'Cooking', 'Reading', 'Photography', 'Travel', 'Podcasts'
-    ],
+    'interests' => [], // Needs a separate table or JSON field
     'lifestyle' => [
-        ['icon' => 'sun', 'label' => 'Sleep Schedule', 'value' => 'Early Bird'],
-        ['icon' => 'check-circle', 'label' => 'Cleanliness', 'value' => 'Very Clean'],
-        ['icon' => 'users', 'label' => 'Social Level', 'value' => 'Balanced'],
-        ['icon' => 'briefcase', 'label' => 'Work Schedule', 'value' => 'Hybrid (WFH 3 days)'],
-        ['icon' => 'users', 'label' => 'Guests', 'value' => 'Occasionally'],
-        ['icon' => 'volume-2', 'label' => 'Noise Level', 'value' => 'Quiet'],
-        ['icon' => 'thermometer', 'label' => 'Temperature', 'value' => 'Moderate'],
+        ['icon' => 'sun', 'label' => 'Sleep Schedule', 'value' => $profileData['sleep_schedule'] ?? 'Not specified'],
+        ['icon' => 'check-circle', 'label' => 'Cleanliness', 'value' => $profileData['cleanliness'] ?? 'Not specified'],
+        ['icon' => 'users', 'label' => 'Social Level', 'value' => $profileData['social_level'] ?? 'Not specified'],
+        ['icon' => 'briefcase', 'label' => 'Work Schedule', 'value' => $profileData['work_schedule'] ?? 'Not specified'],
+        ['icon' => 'volume-2', 'label' => 'Noise Level', 'value' => $profileData['noise_level'] ?? 'Not specified'],
     ],
-    'preferences' => [
-        ['icon' => 'cigarette', 'label' => 'Non-smoker', 'value' => true],
-        ['icon' => 'paw-print', 'label' => 'Pet-friendly', 'value' => true],
-        ['icon' => 'coffee', 'label' => 'Social drinker', 'value' => true],
+    'preferences' => [], // Populated below
+    'lookingFor' => [
+        'moveInDate' => $profileData['move_in_date'] ?? 'Flexible',
+        'budget' => '$' . ($profileData['budget'] ?? '0'),
+        'location' => $profileData['preferred_location'] ?? 'Any',
+        'roomType' => 'Private Room', // Placeholder
+        'leaseTerm' => '12 Months', // Placeholder
+    ]
+];
+
+// Populate Preferences from JSON
+if (is_array($preferences)) {
+    foreach ($preferences as $pref) {
+        $icon = 'check-circle'; // Default
+        $lowerPref = strtolower($pref);
+        
+        if (strpos($lowerPref, 'smoke') !== false) $icon = 'cigarette-off';
+        elseif (strpos($lowerPref, 'pet') !== false) $icon = 'paw-print';
+        elseif (strpos($lowerPref, 'drink') !== false) $icon = 'coffee';
+        elseif (strpos($lowerPref, 'clean') !== false) $icon = 'sparkles';
+        elseif (strpos($lowerPref, 'student') !== false) $icon = 'graduation-cap';
+        elseif (strpos($lowerPref, 'work') !== false) $icon = 'briefcase';
+        elseif (strpos($lowerPref, 'cook') !== false) $icon = 'chef-hat';
+        
+        $profile['preferences'][] = ['icon' => $icon, 'label' => $pref, 'value' => true];
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -144,7 +187,7 @@ $profile = [
 
                             <!-- Actions -->
                             <div class="profile-actions">
-                                <button class="btn btn-primary btn-lg" style="width: 100%; justify-content: center;" onclick="window.location.href='messages.php'">
+                                <button class="btn btn-primary btn-lg" style="width: 100%; justify-content: center;" onclick="window.location.href='messages.php?user_id=<?php echo $profile['id']; ?>'">
                                     <i data-lucide="message-square" class="btn-icon"></i>
                                     Message
                                 </button>
@@ -202,11 +245,7 @@ $profile = [
                                     <i data-lucide="<?php echo $pref['icon']; ?>" style="width: 1.25rem; height: 1.25rem; color: rgba(0,0,0,0.4);"></i>
                                     <span style="color: #000;"><?php echo $pref['label']; ?></span>
                                 </div>
-                                <?php if($pref['value']): ?>
                                 <i data-lucide="check-circle" style="width: 1.25rem; height: 1.25rem; color: var(--green);"></i>
-                                <?php else: ?>
-                                <i data-lucide="x-circle" style="width: 1.25rem; height: 1.25rem; color: rgba(0,0,0,0.2);"></i>
-                                <?php endif; ?>
                             </div>
                             <?php endforeach; ?>
                         </div>

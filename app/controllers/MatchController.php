@@ -1,4 +1,7 @@
 <?php
+// Start output buffering to prevent accidental output
+ob_start();
+
 session_start();
 require_once __DIR__ . '/../config/Database.php';
 require_once __DIR__ . '/../models/Match.php';
@@ -16,8 +19,7 @@ class MatchController {
     public function recordAction() {
         // Check authentication
         if (!isset($_SESSION['user_id'])) {
-            echo json_encode(['status' => 'error', 'message' => 'Not authenticated']);
-            exit;
+            $this->jsonResponse(['status' => 'error', 'message' => 'Not authenticated']);
         }
 
         $seekerId = $_SESSION['user_id'];
@@ -26,46 +28,42 @@ class MatchController {
 
         // Validate input
         if (!$targetId || !$action) {
-            echo json_encode([
- 'status' => 'error',
-                'message' => 'Missing required parameters'
-            ]);
-            exit;
+            $this->jsonResponse(['status' => 'error', 'message' => 'Missing required parameters']);
         }
 
         if (!in_array($action, ['pass', 'match'])) {
-            echo json_encode(['status' => 'error', 'message' => 'Invalid action']);
-            exit;
+            $this->jsonResponse(['status' => 'error', 'message' => 'Invalid action']);
         }
 
-        // Record the action
-        $result = $this->matchModel->recordAction($seekerId, $targetId, $action);
+        try {
+            // Record the action
+            $result = $this->matchModel->recordAction($seekerId, $targetId, $action);
 
-        if ($result === false) {
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'Failed to record action or already rated'
-            ]);
-            exit;
+            if ($result === false) {
+                $this->jsonResponse(['status' => 'error', 'message' => 'Failed to record action or already rated']);
+            }
+
+            // Success response
+            $response = [
+                'status' => 'success',
+                'action' => $action,
+                'is_mutual' => $result['is_mutual']
+            ];
+
+            if ($result['is_mutual']) {
+                $response['message'] = "It's a match! 🎉";
+            } else if ($action === 'match') {
+                $response['message'] = 'Match recorded!';
+            } else {
+                $response['message'] = 'Passed';
+            }
+
+            $this->jsonResponse($response);
+
+        } catch (Exception $e) {
+            error_log("Match Error: " . $e->getMessage());
+            $this->jsonResponse(['status' => 'error', 'message' => 'An internal error occurred']);
         }
-
-        // Success response
-        $response = [
-            'status' => 'success',
-            'action' => $action,
-            'is_mutual' => $result['is_mutual']
-        ];
-
-        if ($result['is_mutual']) {
-            $response['message'] = "It's a match! 🎉";
-        } else if ($action === 'match') {
-            $response['message'] = 'Match recorded!';
-        } else {
-            $response['message'] = 'Passed';
-        }
-
-        echo json_encode($response);
-        exit;
     }
 
     /**
@@ -73,16 +71,29 @@ class MatchController {
      */
     public function markNotificationsRead() {
         if (!isset($_SESSION['user_id'])) {
-            echo json_encode(['status' => 'error', 'message' => 'Not authenticated']);
-            exit;
+            $this->jsonResponse(['status' => 'error', 'message' => 'Not authenticated']);
         }
 
-        $result = $this->matchModel->markNotificationsRead($_SESSION['user_id']);
+        try {
+            $result = $this->matchModel->markNotificationsRead($_SESSION['user_id']);
+            $this->jsonResponse([
+                'status' => $result ? 'success' : 'error',
+                'message' => $result ? 'Notifications marked as read' : 'Failed to update'
+            ]);
+        } catch (Exception $e) {
+            error_log("Notification Error: " . $e->getMessage());
+            $this->jsonResponse(['status' => 'error', 'message' => 'An internal error occurred']);
+        }
+    }
 
-        echo json_encode([
-            'status' => $result ? 'success' : 'error',
-            'message' => $result ? 'Notifications marked as read' : 'Failed to update'
-        ]);
+    /**
+     * Helper to send JSON response and exit
+     */
+    private function jsonResponse($data) {
+        // Clear any previous output
+        ob_clean();
+        header('Content-Type: application/json');
+        echo json_encode($data);
         exit;
     }
 }
@@ -104,7 +115,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
         default:
+            // Use the helper method even here
+            ob_clean();
+            header('Content-Type: application/json');
             echo json_encode(['status' => 'error', 'message' => 'Invalid endpoint']);
+            exit;
             break;
     }
 }

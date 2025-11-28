@@ -22,15 +22,44 @@ class RoommateMatch extends BaseModel {
         }
 
         // Check if already exists
-        $sql = "SELECT match_id FROM {$this->table} 
+        $sql = "SELECT match_id, action FROM {$this->table} 
                 WHERE seeker_id = :seeker_id AND target_seeker_id = :target_id";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':seeker_id', $seekerId, PDO::PARAM_INT);
         $stmt->bindValue(':target_id', $targetId, PDO::PARAM_INT);
         $stmt->execute();
         
-        if ($stmt->fetch()) {
-            // Already rated this user
+        $existing = $stmt->fetch();
+
+        if ($existing) {
+            // If already matched, return success (idempotent)
+            if ($existing['action'] === 'match' && $action === 'match') {
+                // Check if it's mutual (just in case it wasn't updated before)
+                $isMutual = $this->checkAndUpdateMutualMatch($seekerId, $targetId);
+                return [
+                    'success' => true,
+                    'is_mutual' => $isMutual
+                ];
+            }
+
+            // If passed before, but now matching (changed mind), update it
+            if ($existing['action'] === 'pass' && $action === 'match') {
+                $sql = "UPDATE {$this->table} SET action = 'match', created_at = NOW() 
+                        WHERE match_id = :match_id";
+                $stmt = $this->conn->prepare($sql);
+                $stmt->bindValue(':match_id', $existing['match_id'], PDO::PARAM_INT);
+                
+                if ($stmt->execute()) {
+                    // Check for mutual match after update
+                    $isMutual = $this->checkAndUpdateMutualMatch($seekerId, $targetId);
+                    return [
+                        'success' => true,
+                        'is_mutual' => $isMutual
+                    ];
+                }
+            }
+
+            // Otherwise (e.g. trying to pass a match, or pass a pass), just return false or ignore
             return false;
         }
 
@@ -77,13 +106,16 @@ class RoommateMatch extends BaseModel {
         
         if ($stmt->fetch()) {
             // It's a mutual match! Update both records
+            // Note: Using unique parameter names because emulate_prepares is false
             $sql = "UPDATE {$this->table} 
                     SET is_mutual = 1 
-                    WHERE (seeker_id = :seeker_id AND target_seeker_id = :target_id)
-                       OR (seeker_id = :target_id AND target_seeker_id = :seeker_id)";
+                    WHERE (seeker_id = :s1 AND target_seeker_id = :t1)
+                       OR (seeker_id = :s2 AND target_seeker_id = :t2)";
             $stmt = $this->conn->prepare($sql);
-            $stmt->bindValue(':seeker_id', $seekerId, PDO::PARAM_INT);
-            $stmt->bindValue(':target_id', $targetId, PDO::PARAM_INT);
+            $stmt->bindValue(':s1', $seekerId, PDO::PARAM_INT);
+            $stmt->bindValue(':t1', $targetId, PDO::PARAM_INT);
+            $stmt->bindValue(':s2', $targetId, PDO::PARAM_INT);
+            $stmt->bindValue(':t2', $seekerId, PDO::PARAM_INT);
             $stmt->execute();
             
             return true;
@@ -121,13 +153,13 @@ class RoommateMatch extends BaseModel {
      * @return array
      */
     public function getMutualMatches($seekerId) {
-        $sql = "SELECT DISTINCT
+        $sql = "SELECT 
                     CASE 
                         WHEN rm.seeker_id = :seeker_id1 THEN rm.target_seeker_id
                         ELSE rm.seeker_id
                     END as match_user_id,
                     u.first_name, u.last_name, u.profile_photo, u.role,
-                    sp.occupation, rm.created_at
+                    sp.occupation, MAX(rm.created_at) as created_at
                 FROM {$this->table} rm
                 INNER JOIN users u ON (
                     CASE 
@@ -138,7 +170,8 @@ class RoommateMatch extends BaseModel {
                 LEFT JOIN seeker_profiles sp ON u.user_id = sp.user_id
                 WHERE (rm.seeker_id = :seeker_id3 OR rm.target_seeker_id = :seeker_id4)
                   AND rm.is_mutual = 1
-                ORDER BY rm.created_at DESC";
+                GROUP BY match_user_id
+                ORDER BY created_at DESC";
         
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':seeker_id1', $seekerId, PDO::PARAM_INT);

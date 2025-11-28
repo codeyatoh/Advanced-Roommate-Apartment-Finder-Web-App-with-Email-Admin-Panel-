@@ -79,7 +79,9 @@ $mutualMatches = $matchModel->getMutualMatches($userId);
                                 <!-- Photo -->
                                 <div class="profile-image-container" style="width: 100%; flex-shrink: 0;">
                                     <div style="position: relative; border-radius: 1rem; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.15); height: 100%;">
-                                        <img src="<?php echo $photo; ?>" alt="<?php echo $fullName; ?>" class="profile-image" style="width: 100%; height: 400px; object-fit: cover;">
+                                        <a href="match_profile.php?user_id=<?php echo $currentProfile['user_id']; ?>" style="display: block; height: 100%; cursor: pointer;">
+                                            <img src="<?php echo $photo; ?>" alt="<?php echo $fullName; ?>" class="profile-image" style="width: 100%; height: 400px; object-fit: cover; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                        </a>
                                     </div>
                                 </div>
                                 <!-- Details -->
@@ -168,12 +170,15 @@ $mutualMatches = $matchModel->getMutualMatches($userId);
                                             ? htmlspecialchars($person['profile_photo']) 
                                             : 'https://ui-avatars.com/api/?name=' . urlencode($pName) . '&background=10b981&color=fff';
                                     ?>
-                                    <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; background: var(--glass-bg-subtle); border-radius: 0.5rem; cursor: pointer;">
+                                    <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; background: var(--glass-bg-subtle); border-radius: 0.5rem;">
                                         <img src="<?php echo $pPhoto; ?>" alt="<?php echo $pName; ?>" style="width: 3rem; height: 3rem; border-radius: 9999px; object-fit: cover;">
                                         <div style="flex: 1; min-width: 0;">
                                             <p style="font-size: 0.875rem; font-weight: 600; color: #000000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;"><?php echo $pName; ?></p>
                                             <p style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;"><?php echo htmlspecialchars($person['occupation'] ?? 'Room Seeker'); ?></p>
                                         </div>
+                                        <button onclick="handleAction('match', <?php echo $person['user_id']; ?>)" style="width: 2rem; height: 2rem; border-radius: 50%; background: #ef4444; color: white; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="Match Back">
+                                            <i data-lucide="heart" style="width: 1rem; height: 1rem; fill: white;"></i>
+                                        </button>
                                     </div>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
@@ -202,7 +207,7 @@ $mutualMatches = $matchModel->getMutualMatches($userId);
                                             : 'https://ui-avatars.com/api/?name=' . urlencode($mName) . '&background=10b981&color=fff';
                                     ?>
                                     <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; background: var(--glass-bg-subtle); border-radius: 0.5rem;">
-                                        <a href="messages.php" style="display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0; text-decoration: none; color: inherit;">
+                                        <a href="match_profile.php?user_id=<?php echo $person['match_user_id']; ?>" style="display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0; text-decoration: none; color: inherit;">
                                             <div style="position: relative;">
                                                 <img src="<?php echo $mPhoto; ?>" alt="<?php echo $mName; ?>" style="width: 3rem; height: 3rem; border-radius: 9999px; object-fit: cover;">
                                                 <div style="position: absolute; bottom: -0.25rem; right: -0.25rem; width: 1rem; height: 1rem; background: #10b981; border-radius: 9999px; border: 2px solid white;"></div>
@@ -221,7 +226,7 @@ $mutualMatches = $matchModel->getMutualMatches($userId);
                                             </div>
                                         </a>
                                         <div style="display: flex; flex-direction: column; align-items: flex-end;">
-                                            <a href="messages.php" style="text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 0.25rem; border-radius: 0.25rem; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='rgba(16, 185, 129, 0.1)'" onmouseout="this.style.backgroundColor='transparent'">
+                                            <a href="messages.php?user_id=<?php echo $person['match_user_id']; ?>" style="text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 0.25rem; border-radius: 0.25rem; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='rgba(16, 185, 129, 0.1)'" onmouseout="this.style.backgroundColor='transparent'">
                                                 <i data-lucide="message-square" style="width: 1rem; height: 1rem; color: #10b981;"></i>
                                             </a>
                                         </div>
