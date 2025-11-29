@@ -15,10 +15,12 @@ class Listing extends BaseModel {
      */
     public function getAvailable() {
         $sql = "SELECT l.*, 
-                       (SELECT image_url FROM listing_images WHERE listing_id = l.listing_id AND is_primary = 1 LIMIT 1) as primary_image
+                       (SELECT image_url FROM listing_images WHERE listing_id = l.listing_id AND is_primary = 1 LIMIT 1) as primary_image,
+                       (l.bedrooms - l.current_roommates) as beds_available
                 FROM {$this->table} l
                 WHERE l.approval_status = 'approved'
                   AND l.availability_status = 'available'
+                  AND l.current_roommates < l.bedrooms
                 ORDER BY l.created_at DESC";
 
         $stmt = $this->conn->prepare($sql);
@@ -132,11 +134,13 @@ class Listing extends BaseModel {
     public function search($filters = []) {
         $sql = "SELECT l.*, 
                     (SELECT image_url FROM listing_images WHERE listing_id = l.listing_id AND is_primary = 1 LIMIT 1) as primary_image,
-                    CONCAT(u.first_name, ' ', u.last_name) as landlord_name
+                    CONCAT(u.first_name, ' ', u.last_name) as landlord_name,
+                    (l.bedrooms - l.current_roommates) as beds_available
                 FROM {$this->table} l
                 LEFT JOIN users u ON l.landlord_id = u.user_id
                 WHERE l.approval_status = 'approved'
-                  AND l.availability_status = 'available'";
+                  AND l.availability_status = 'available'
+                  AND l.current_roommates < l.bedrooms";
         
         $params = [];
 
@@ -535,5 +539,16 @@ class Listing extends BaseModel {
         $stmt->execute();
 
         return $this->delete($listingId);
+    }
+    /**
+     * Increment listing view count
+     * @param int $listingId
+     * @return bool
+     */
+    public function incrementViews($listingId) {
+        $sql = "UPDATE {$this->table} SET view_count = view_count + 1 WHERE listing_id = :listing_id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':listing_id', $listingId, PDO::PARAM_INT);
+        return $stmt->execute();
     }
 }

@@ -416,6 +416,15 @@
         const addListingForm = document.getElementById('addListingForm');
         const submitButton = addListingForm.querySelector('button[type="submit"]');
         let isSubmitting = false;
+        addListingForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (isSubmitting) return;
+            isSubmitting = true;
+            submitButton.disabled = true;
+            submitButton.style.opacity = '0.7';
+            submitButton.style.cursor = 'not-allowed';
+
             // Show loading toast
             const loadingToast = Toastify({
                 text: "Submitting your listing...",
@@ -429,6 +438,13 @@
             }).showToast();
 
             const formData = new FormData(addListingForm);
+            
+            // Append images from our custom array
+            // Remove any empty file inputs that might be there by default
+            formData.delete('images[]');
+            allFiles.forEach(file => {
+                formData.append('images[]', file);
+            });
 
             try {
                 const response = await fetch(addListingForm.action, {

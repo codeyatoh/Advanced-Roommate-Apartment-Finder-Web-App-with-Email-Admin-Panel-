@@ -176,4 +176,29 @@ class Report extends BaseModel {
         $stmt->execute();
         return $stmt->fetchAll();
     }
+    /**
+     * Create a new report
+     * @param array $data
+     * @return bool|int
+     */
+    public function create($data) {
+        $sql = "INSERT INTO {$this->table} 
+                (reporter_id, reported_user_id, reported_listing_id, report_type, category, description, status) 
+                VALUES (:reporter_id, :reported_user_id, :reported_listing_id, :report_type, :category, :description, :status)";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':reporter_id', $data['reporter_id'], PDO::PARAM_INT);
+        $stmt->bindValue(':reported_user_id', $data['reported_user_id'] ?? null, PDO::PARAM_INT);
+        $stmt->bindValue(':reported_listing_id', $data['reported_listing_id'] ?? null, PDO::PARAM_INT);
+        $stmt->bindValue(':report_type', $data['report_type']);
+        $stmt->bindValue(':category', $data['category']);
+        $stmt->bindValue(':description', $data['description']);
+        $stmt->bindValue(':status', $data['status'] ?? 'pending');
+        
+        if ($stmt->execute()) {
+            return $this->conn->lastInsertId();
+        }
+        
+        return false;
+    }
 }

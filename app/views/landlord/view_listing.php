@@ -59,7 +59,7 @@
                         <i data-lucide="alert-circle" style="width: 1.5rem; height: 1.5rem;"></i>
                         <div>
                             <strong>Rejected</strong>
-                            <p style="margin: 0; font-size: 0.875rem;">Admin Note: <?php echo htmlspecialchars($listing['admin_note'] ?? 'No reason provided.'); ?></p>
+                            <p style="margin: 0; font-size: 0.875rem;">Admin Note: <?php echo isset($listing['admin_note']) ? htmlspecialchars($listing['admin_note']) : 'No reason provided.'; ?></p>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -221,6 +221,96 @@
                             </div>
                         </div>
                         <?php endif; ?>
+
+                        <!-- Current Tenants -->
+                        <?php
+                        if (!isset($rentalModel)) {
+                            require_once __DIR__ . '/../../models/Rental.php';
+                            $rentalModel = new Rental();
+                        }
+                        
+                        // Get active rentals for this listing
+                        $activeTenants = [];
+                        try {
+                            $conn = $rentalModel->getConnection();
+                            $sql = "SELECT r.*, u.user_id AS tenant_user_id, u.first_name, u.last_name, u.email, u.profile_photo 
+                                    FROM rentals r 
+                                    JOIN users u ON r.tenant_id = u.user_id 
+                                    WHERE r.listing_id = :listing_id 
+                                      AND r.status = 'active'
+                                    ORDER BY r.created_at DESC";
+                            $stmt = $conn->prepare($sql);
+                            $stmt->bindValue(':listing_id', $listingId, PDO::PARAM_INT);
+                            $stmt->execute();
+                            $activeTenants = $stmt->fetchAll();
+                        } catch (Exception $e) {
+                            error_log("Error fetching active tenants: " . $e->getMessage());
+                            $activeTenants = [];
+                        }
+                        ?>
+
+                        <div class="card card-glass" style="padding: 1.5rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                                <h2 style="font-size: 1.25rem; font-weight: 700; color: #000000; margin: 0;">
+                                    Current Tenants
+                                </h2>
+                                <span style="background: #dbeafe; color: #1e40af; padding: 0.375rem 0.875rem; border-radius: 999px; font-size: 0.875rem; font-weight: 600;">
+                                    <?php echo count($activeTenants); ?>/<?php echo $listing['bedrooms']; ?> Occupied
+                                </span>
+                            </div>
+
+                            <?php if (empty($activeTenants)): ?>
+                                <!-- Empty State -->
+                                <div style="text-align: center; padding: 3rem 1rem; color: rgba(0,0,0,0.5);">
+                                    <i data-lucide="users" style="width: 3rem; height: 3rem; margin: 0 auto 1rem; opacity: 0.3;"></i>
+                                    <p style="margin: 0; font-weight: 500;">No active tenants yet</p>
+                                    <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem;">Tenants will appear here once they start renting this room</p>
+                                </div>
+                            <?php else: ?>
+                                <!-- Tenants List -->
+                                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                    <?php foreach ($activeTenants as $tenant): ?>
+                                    <div class="tenant-card">
+                                        <div class="tenant-info">
+                                            <div class="tenant-avatar">
+                                                <?php if (!empty($tenant['profile_photo'])): ?>
+                                                    <img src="<?php echo htmlspecialchars($tenant['profile_photo']); ?>" alt="<?php echo htmlspecialchars($tenant['first_name']); ?>">
+                                                <?php else: ?>
+                                                    <div class="tenant-avatar-placeholder">
+                                                        <?php echo strtoupper(substr($tenant['first_name'], 0, 1)); ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="tenant-details">
+                                                <h4 class="tenant-name">
+                                                    <?php echo htmlspecialchars($tenant['first_name'] . ' ' . $tenant['last_name']); ?>
+                                                </h4>
+                                                <p class="tenant-meta">
+                                                    <i data-lucide="calendar"></i>
+                                                    Since <?php echo date('M d, Y', strtotime($tenant['start_date'])); ?>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="tenant-actions">
+                                            <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/landlord/inquiries.php?user_id=<?php echo $tenant['tenant_user_id']; ?>" 
+                                               class="btn btn-glass btn-sm" 
+                                               style="text-decoration: none;">
+                                                <i data-lucide="message-circle"></i>
+                                                <span>Message</span>
+                                            </a>
+                                            <button class="btn btn-ghost btn-sm remove-tenant-btn" 
+                                                    data-rental-id="<?php echo $tenant['rental_id']; ?>"
+                                                    data-tenant-name="<?php echo htmlspecialchars($tenant['first_name'] . ' ' . $tenant['last_name']); ?>"
+                                                    style="color: #dc2626; border-color: #fca5a5;">
+                                                <i data-lucide="user-minus"></i>
+                                                <span>Remove</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
                     </div>
 
                     <!-- Sidebar -->
@@ -252,6 +342,106 @@
                 </div>
 
                 <style>
+                    /* Tenant Cards */
+                    .tenant-card {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 1.25rem;
+                        background: white;
+                        border: 1px solid rgba(0,0,0,0.08);
+                        border-radius: 0.75rem;
+                        transition: all 0.2s;
+                    }
+
+                    .tenant-card:hover {
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+                        border-color: rgba(0,0,0,0.12);
+                    }
+
+                    .tenant-info {
+                        display: flex;
+                        align-items: center;
+                        gap: 1rem;
+                        flex: 1;
+                    }
+
+                    .tenant-avatar {
+                        width: 3rem;
+                        height: 3rem;
+                        border-radius: 50%;
+                        overflow: hidden;
+                        flex-shrink: 0;
+                    }
+
+                    .tenant-avatar img {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                    }
+
+                    .tenant-avatar-placeholder {
+                        width: 100%;
+                        height: 100%;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        font-weight: 700;
+                        font-size: 1.25rem;
+                    }
+
+                    .tenant-details {
+                        flex: 1;
+                    }
+
+                    .tenant-name {
+                        font-size: 1rem;
+                        font-weight: 600;
+                        color: #111827;
+                        margin: 0 0 0.25rem 0;
+                    }
+
+                    .tenant-meta {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.375rem;
+                        font-size: 0.875rem;
+                        color: #6b7280;
+                        margin: 0;
+                    }
+
+                    .tenant-meta i {
+                        width: 0.875rem;
+                        height: 0.875rem;
+                    }
+
+                    .tenant-actions {
+                        display: flex;
+                        gap: 0.5rem;
+                    }
+
+                    @media (max-width: 640px) {
+                        .tenant-card {
+                            flex-direction: column;
+                            gap: 1rem;
+                        }
+
+                        .tenant-info {
+                            width: 100%;
+                        }
+
+                        .tenant-actions {
+                            width: 100%;
+                            flex-direction: column;
+                        }
+
+                        .tenant-actions .btn {
+                            width: 100%;
+                        }
+                    }
+
                     @media (min-width: 1024px) {
                         div[style*="grid-template-columns: 1fr"][style*="gap: 2rem"] {
                             grid-template-columns: 2fr 1fr !important;
@@ -341,6 +531,31 @@
         </div>
     </div>
 
+    <!-- Remove Tenant Modal -->
+    <div id="removeTenantModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Remove Tenant</h3>
+                <button class="close-modal" style="color: #6b7280; padding: 0.25rem;"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 1rem;">Are you sure you want to remove <strong id="tenantNameDisplay"></strong> from this listing?</p>
+                <div class="form-group">
+                    <label for="removalReason" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #374151;">Reason for Removal (Optional)</label>
+                    <textarea id="removalReason" 
+                              class="form-input" 
+                              rows="3" 
+                              placeholder="Provide a reason for removing this tenant..."
+                              style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-family: inherit; resize: vertical;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost close-modal">Cancel</button>
+                <button id="confirmRemoveBtn" class="btn btn-primary" style="background: #dc2626; border-color: #dc2626; color: white;">Remove Tenant</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         lucide.createIcons();
@@ -421,6 +636,74 @@
                     }
                 });
             }
+
+            // Remove Tenant Logic
+            const removeTenantBtns = document.querySelectorAll('.remove-tenant-btn');
+            const removeTenantModal = document.getElementById('removeTenantModal');
+            const tenantNameDisplay = document.getElementById('tenantNameDisplay');
+            const removalReasonInput = document.getElementById('removalReason');
+            const confirmRemoveBtn = document.getElementById('confirmRemoveBtn');
+            let currentRentalId = null;
+
+            removeTenantBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentRentalId = btn.dataset.rentalId;
+                    tenantNameDisplay.textContent = btn.dataset.tenantName;
+                    removalReasonInput.value = '';
+                    removeTenantModal.classList.add('show');
+                });
+            });
+
+            // Close Remove Tenant Modal
+            const allCloseModalBtns = document.querySelectorAll('.close-modal');
+            allCloseModalBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    removeTenantModal.classList.remove('show');
+                    deleteModal.classList.remove('show');
+                });
+            });
+
+            // Close on click outside
+            removeTenantModal.addEventListener('click', (e) => {
+                if (e.target === removeTenantModal) {
+                    removeTenantModal.classList.remove('show');
+                }
+            });
+
+            // Confirm Remove Tenant
+            confirmRemoveBtn.addEventListener('click', async function() {
+                if (!currentRentalId) return;
+
+                this.disabled = true;
+                this.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Removing...';
+                lucide.createIcons();
+
+                try {
+                    const formData = new FormData();
+                    formData.append('rental_id', currentRentalId);
+                    formData.append('reason', removalReasonInput.value);
+
+                    const response = await fetch('/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/controllers/RentalController.php?action=remove_tenant', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        location.reload(); // Reload to show updated tenant list
+                    } else {
+                        alert(result.message || 'Failed to remove tenant.');
+                        this.disabled = false;
+                        this.innerHTML = 'Remove Tenant';
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while removing the tenant.');
+                    this.disabled = false;
+                    this.innerHTML = 'Remove Tenant';
+                }
+            });
         });
     </script>
 </body>

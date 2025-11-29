@@ -25,7 +25,7 @@
     $dashboardController = new DashboardController();
     $data = $dashboardController->getDashboardData($landlordId);
 
-    // Extract data
+   // Extract data
     $stats = $data['stats'];
     $pendingViewings = $data['pending_viewings'];
     $recentInquiries = $data['recent_inquiries'];
@@ -33,13 +33,9 @@
     $performance = $data['performance'];
     $monthlyRevenue = $performance['monthly_revenue'];
     $occupancyRate = $performance['occupancy_rate'];
-    $occupiedListings = $performance['occupied_count'];
-    $totalListings = $performance['total_count'];
+    $occupiedBedrooms = $performance['occupied_bedrooms'];
+    $totalBedrooms = $performance['total_bedrooms'];
     
-    // User model needed for tenant names in viewings (or could be fetched in controller)
-    // Controller returns raw rows, need to fetch user details if not joined.
-    // AppointmentModel getPendingForLandlord usually joins user table?
-    // Let's check AppointmentModel::getPendingForLandlord.
     // Assuming it does or I'll need to instantiate User model here or update controller.
     // To be safe, I'll instantiate User model here for helper lookups if needed, 
     // but ideally controller should return everything.
@@ -158,7 +154,7 @@
                                 </div>
                                 <p style="font-size: 1.5rem; font-weight: 700; color: #000;">₱<?php echo number_format($monthlyRevenue, 0); ?></p>
                                 <div style="display: flex; align-items: center; gap: 0.25rem; margin-top: 0.25rem;">
-                                    <span style="font-size: 0.75rem; color: rgba(0,0,0,0.6);">From <?php echo $occupiedListings; ?> rented listings</span>
+                                    <span style="font-size: 0.75rem; color: rgba(0,0,0,0.6);">From <?php echo $occupiedBedrooms; ?> bedrooms occupied</span>
                                 </div>
                             </div>
                             <div class="glass-subtle" style="padding: 1rem; border-radius: 0.75rem;">
@@ -168,7 +164,7 @@
                                 </div>
                                 <p style="font-size: 1.5rem; font-weight: 700; color: #000;"><?php echo $occupancyRate; ?>%</p>
                                 <div style="display: flex; align-items: center; gap: 0.25rem; margin-top: 0.25rem;">
-                                    <span style="font-size: 0.75rem; color: rgba(0,0,0,0.6);"><?php echo $occupiedListings; ?>/<?php echo $totalListings; ?> rented</span>
+                                    <span style="font-size: 0.75rem; color: rgba(0,0,0,0.6);"><?php echo $occupiedBedrooms; ?>/<?php echo $totalBedrooms; ?> bedrooms</span>
                                 </div>
                             </div>
                         </div>

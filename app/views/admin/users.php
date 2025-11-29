@@ -69,6 +69,14 @@
         'status' => $status
     ]);
     
+    // Pagination
+    $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+    $limit = 5;
+    $totalUsers = count($usersData);
+    $totalPages = ceil($totalUsers / $limit);
+    $offset = ($page - 1) * $limit;
+    $usersData = array_slice($usersData, $offset, $limit);
+    
     // Format user data with additional stats
     $users = [];
     foreach ($usersData as $userData) {
@@ -249,6 +257,48 @@
                     </table>
                 </div>
             </div>
+            
+            <!-- Pagination Controls -->
+            <?php if ($totalPages > 1): ?>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 2rem;">
+                <!-- Previous Button -->
+                <?php if ($page > 1): ?>
+                <a href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>&role=<?php echo urlencode($role); ?>&status=<?php echo urlencode($status); ?>" class="btn btn-glass btn-sm" style="text-decoration: none; display: flex; align-items: center; gap: 0.25rem;">
+                    <i data-lucide="chevron-left" style="width: 1rem; height: 1rem;"></i>
+                    Prev
+                </a>
+                <?php else: ?>
+                <button class="btn btn-glass btn-sm" disabled style="opacity: 0.5; cursor: not-allowed; display: flex; align-items: center; gap: 0.25rem;">
+                    <i data-lucide="chevron-left" style="width: 1rem; height: 1rem;"></i>
+                    Prev
+                </button>
+                <?php endif; ?>
+
+                <!-- Page Numbers -->
+                <div style="display: flex; gap: 0.25rem;">
+                    <?php for ($i = 1; $i <= max(1, $totalPages); $i++): ?>
+                        <a href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>&role=<?php echo urlencode($role); ?>&status=<?php echo urlencode($status); ?>" 
+                           class="btn btn-sm" 
+                           style="text-decoration: none; width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; padding: 0; border: 1px solid rgba(0,0,0,0.1); <?php echo $i === $page ? 'background-color: #2563eb; color: white; border-color: #2563eb;' : 'background-color: white; color: #1f2937;'; ?>">
+                            <?php echo $i; ?>
+                        </a>
+                    <?php endfor; ?>
+                </div>
+
+                <!-- Next Button -->
+                <?php if ($page < $totalPages): ?>
+                <a href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>&role=<?php echo urlencode($role); ?>&status=<?php echo urlencode($status); ?>" class="btn btn-glass btn-sm" style="text-decoration: none; display: flex; align-items: center; gap: 0.25rem;">
+                    Next
+                    <i data-lucide="chevron-right" style="width: 1rem; height: 1rem;"></i>
+                </a>
+                <?php else: ?>
+                <button class="btn btn-glass btn-sm" disabled style="opacity: 0.5; cursor: not-allowed; display: flex; align-items: center; gap: 0.25rem;">
+                    Next
+                    <i data-lucide="chevron-right" style="width: 1rem; height: 1rem;"></i>
+                </button>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 

@@ -168,7 +168,18 @@
                                 $avatar = !empty($user['profile_photo']) 
                                     ? $user['profile_photo'] 
                                     : 'https://ui-avatars.com/api/?name=' . urlencode($user['first_name'] . ' ' . $user['last_name']) . '&background=random';
-                                $roleColor = $user['role'] === 'landlord' ? '#2563eb' : '#7c3aed';
+                                
+                                // Set role display and color
+                                $roleDisplay = 'Seeker';
+                                $roleColor = '#7c3aed';
+                                
+                                if ($user['role'] === 'landlord') {
+                                    $roleDisplay = 'Landlord';
+                                    $roleColor = '#2563eb';
+                                } elseif ($user['role'] === 'admin') {
+                                    $roleDisplay = 'Admin';
+                                    $roleColor = '#dc2626';
+                                }
                             ?>
                             <div class="activity-item">
                                 <img src="<?php echo $avatar; ?>" alt="User" style="width: 2.5rem; height: 2.5rem; border-radius: 9999px; object-fit: cover;">
@@ -177,7 +188,7 @@
                                     <p style="font-size: 0.75rem; color: rgba(0,0,0,0.5); margin: 0;"><?php echo htmlspecialchars($user['email']); ?></p>
                                 </div>
                                 <span style="font-size: 0.75rem; font-weight: 600; color: <?php echo $roleColor; ?>; background: <?php echo $roleColor; ?>15; padding: 0.25rem 0.5rem; border-radius: 9999px;">
-                                    <?php echo ucfirst($user['role'] === 'room_seeker' ? 'Seeker' : 'Landlord'); ?>
+                                    <?php echo $roleDisplay; ?>
                                 </span>
                             </div>
                             <?php endforeach; ?>

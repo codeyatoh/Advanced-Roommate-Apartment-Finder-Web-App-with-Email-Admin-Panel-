@@ -92,7 +92,7 @@
                             <input type="checkbox" name="remember" id="remember">
                             <span>Remember me</span>
                         </label>
-                        <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/public/forgot-password.php" class="auth-link">
+                        <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/auth/forgot_password.php" class="auth-link">
                             Forgot password?
                         </a>
                     </div>

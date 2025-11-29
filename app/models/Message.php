@@ -132,18 +132,24 @@ class Message extends BaseModel {
      */
     public function getLandlordInquiries($landlordId) {
         $sql = "SELECT 
-                    m.sender_id as other_user_id,
+                    CASE 
+                        WHEN m.sender_id = :landlord_id1 THEN m.receiver_id 
+                        ELSE m.sender_id 
+                    END as other_user_id,
                     m.listing_id,
                     MAX(m.message_content) as last_message,
                     MAX(m.created_at) as last_message_time,
-                    SUM(CASE WHEN m.is_read = 0 THEN 1 ELSE 0 END) as unread_count
+                    SUM(CASE WHEN m.receiver_id = :landlord_id2 AND m.is_read = 0 THEN 1 ELSE 0 END) as unread_count
                 FROM {$this->table} m
-                WHERE m.receiver_id = :landlord_id
-                GROUP BY m.sender_id, m.listing_id
-                ORDER BY MAX(m.created_at) DESC";
+                WHERE m.receiver_id = :landlord_id3 OR m.sender_id = :landlord_id4
+                GROUP BY other_user_id, m.listing_id
+                ORDER BY last_message_time DESC";
         
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':landlord_id', $landlordId, PDO::PARAM_INT);
+        $stmt->bindValue(':landlord_id1', $landlordId, PDO::PARAM_INT);
+        $stmt->bindValue(':landlord_id2', $landlordId, PDO::PARAM_INT);
+        $stmt->bindValue(':landlord_id3', $landlordId, PDO::PARAM_INT);
+        $stmt->bindValue(':landlord_id4', $landlordId, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll();
     }

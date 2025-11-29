@@ -5,7 +5,12 @@
 
 SET FOREIGN_KEY_CHECKS = 0;
 
--- Drop existing tables to ensure a clean installation
+-- Drop existing tables to ensure a clean installation (reverse dependency order)
+DROP TABLE IF EXISTS password_reset_tokens;
+DROP TABLE IF EXISTS activity_logs;
+DROP TABLE IF EXISTS saved_listings;
+DROP TABLE IF EXISTS payments;
+DROP TABLE IF EXISTS rentals;
 DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS roommate_matches;
 DROP TABLE IF EXISTS reports;
@@ -34,6 +39,7 @@ CREATE TABLE users (
     gender ENUM('male', 'female', 'other', 'prefer_not_to_say') NULL, -- Added as requested
     profile_photo VARCHAR(255),
     bio TEXT,
+    payment_methods TEXT DEFAULT NULL, -- Stores landlord payment methods as JSON
     is_verified TINYINT(1) DEFAULT 0,
     is_active TINYINT(1) DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -72,6 +78,7 @@ CREATE TABLE listings (
     approved_by INT NULL,
     approved_at TIMESTAMP NULL,
     admin_note TEXT,
+    view_count INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
@@ -247,11 +254,13 @@ CREATE TABLE roommate_matches (
 CREATE TABLE notifications (
     notification_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    type ENUM('match', 'message', 'appointment', 'inquiry', 'system') NOT NULL,
+    type ENUM('match', 'message', 'appointment', 'inquiry', 'system', 'rent_request', 'payment_received', 'email') NOT NULL,
     title VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
     related_id INT NULL COMMENT 'ID of related entity (match_id, message_id, etc)',
     related_user_id INT NULL COMMENT 'ID of user who triggered the notification',
+    link VARCHAR(255) NULL,
+    status ENUM('pending', 'sent', 'delivered', 'failed', 'read') DEFAULT 'pending',
     is_read TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     read_at TIMESTAMP NULL,
@@ -259,5 +268,116 @@ CREATE TABLE notifications (
     -- Indexes for better performance
     INDEX idx_user_id (user_id),
     INDEX idx_user_read (user_id, is_read),
+    INDEX idx_status (status),
     INDEX idx_created (created_at DESC)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- =============================================================================
+-- 11. RENTALS TABLE
+-- Manages rental agreements between landlords and tenants.
+-- =============================================================================
+CREATE TABLE rentals (
+    rental_id INT AUTO_INCREMENT PRIMARY KEY,
+    listing_id INT NOT NULL,
+    tenant_id INT NOT NULL,
+    landlord_id INT NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NULL,
+    rent_amount DECIMAL(10,2) NOT NULL,
+    status ENUM('pending', 'active', 'completed', 'cancelled') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (listing_id) REFERENCES listings(listing_id) ON DELETE CASCADE,
+    FOREIGN KEY (tenant_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (landlord_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- =============================================================================
+-- 12. PAYMENTS TABLE
+-- Tracks rent payments.
+-- =============================================================================
+CREATE TABLE payments (
+    payment_id INT AUTO_INCREMENT PRIMARY KEY,
+    rental_id INT NOT NULL,
+    user_id INT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    method ENUM('stripe', 'cash', 'bank_transfer', 'ewallet') NOT NULL,
+    transaction_id VARCHAR(255) NULL,
+    proof_image VARCHAR(255) NULL,
+    status ENUM('pending', 'completed', 'failed', 'refunded') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (rental_id) REFERENCES rentals(rental_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- =============================================================================
+-- 13. SAVED LISTINGS TABLE
+-- Stores listings saved by users (favorites).
+-- =============================================================================
+CREATE TABLE saved_listings (
+    save_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    listing_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (listing_id) REFERENCES listings(listing_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_save (user_id, listing_id)
+);
+
+-- =============================================================================
+-- 14. ACTIVITY LOGS TABLE
+-- Tracks user activities for security and history.
+-- =============================================================================
+CREATE TABLE activity_logs (
+    activity_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    action VARCHAR(50) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- =============================================================================
+-- 15. PASSWORD RESET TOKENS TABLE
+-- Stores secure tokens for password reset requests.
+-- =============================================================================
+CREATE TABLE password_reset_tokens (
+    token_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    token VARCHAR(64) NOT NULL UNIQUE,
+    expires_at DATETIME NOT NULL,
+    used TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    INDEX idx_token (token),
+    INDEX idx_expires (expires_at),
+    INDEX idx_user_unused (user_id, used)
+);
+
+-- =============================================================================
+-- END OF SCHEMA
+-- Database is ready for use. All 15 tables included.
+-- =============================================================================
+
+-- =============================================================================
+-- DEFAULT ADMIN USER (For initial setup only)
+-- =============================================================================
+-- Email: admin@roomfinder.com
+-- Password: password
+-- IMPORTANT: Change this password immediately after first login!
+-- =============================================================================
+
+INSERT INTO users (role, first_name, last_name, email, password_hash, is_verified, is_active) 
+VALUES (
+    'admin', 
+    'Admin', 
+    'User', 
+    'admin@roomfinder.com', 
+    '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 
+    1, 
+    1
+);

@@ -24,6 +24,16 @@ $pendingMatches = $matchModel->getPendingMatches($userId);
 // Get mutual matches
 $mutualMatches = $matchModel->getMutualMatches($userId);
 
+// Get current user profile for matching
+$currentUserProfile = $userModel->getUserWithProfile($userId);
+$myPreferences = [];
+if (!empty($currentUserProfile['profile']['preferences'])) {
+    $myPrefsData = json_decode($currentUserProfile['profile']['preferences'], true);
+    if (is_array($myPrefsData)) {
+        $myPreferences = $myPrefsData;
+    }
+}
+
 // Mark match notifications as read
 require_once __DIR__ . '/../../models/Notification.php';
 $notificationModel = new Notification();
@@ -78,6 +88,21 @@ $notificationModel->markAsReadByType($userId, 'match');
                                     $preferences = $prefsData;
                                 }
                             }
+
+                            // Calculate Match Percentage
+                            $matchPercentage = 0;
+                            if (!empty($myPreferences) && !empty($preferences)) {
+                                $intersection = array_intersect($myPreferences, $preferences);
+                                $union = array_unique(array_merge($myPreferences, $preferences));
+                                if (count($union) > 0) {
+                                    $matchPercentage = round((count($intersection) / count($union)) * 100);
+                                }
+                            }
+                            
+                            // Determine match color
+                            $matchColor = '#10b981'; // Green (High)
+                            if ($matchPercentage < 50) $matchColor = '#ef4444'; // Red (Low)
+                            else if ($matchPercentage < 80) $matchColor = '#f59e0b'; // Orange (Medium)
                         ?>
                         <div class="card card-glass" style="overflow: hidden; height: 100%;">
                             <div class="profile-card-content" style="display: flex; flex-direction: column; gap: 1.5rem; padding: 1.5rem; height: 100%;">
@@ -87,6 +112,17 @@ $notificationModel->markAsReadByType($userId, 'match');
                                         <a href="match_profile.php?user_id=<?php echo $currentProfile['user_id']; ?>" style="display: block; height: 100%; cursor: pointer;">
                                             <img src="<?php echo $photo; ?>" alt="<?php echo $fullName; ?>" class="profile-image" style="width: 100%; height: 400px; object-fit: cover; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                                         </a>
+                                        <!-- Match Badge -->
+                                        <div style="position: absolute; top: 1rem; right: 1rem; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); padding: 0.5rem 1rem; border-radius: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 0.5rem; z-index: 10;">
+                                            <div style="position: relative; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center;">
+                                                <svg viewBox="0 0 36 36" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                                                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e5e7eb" stroke-width="4" />
+                                                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="<?php echo $matchColor; ?>" stroke-width="4" stroke-dasharray="<?php echo $matchPercentage; ?>, 100" />
+                                                </svg>
+                                                <span style="position: absolute; font-size: 0.75rem; font-weight: 700; color: <?php echo $matchColor; ?>;"><?php echo $matchPercentage; ?>%</span>
+                                            </div>
+                                            <span style="font-weight: 700; font-size: 0.875rem; color: #1f2937;">Match</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <!-- Details -->

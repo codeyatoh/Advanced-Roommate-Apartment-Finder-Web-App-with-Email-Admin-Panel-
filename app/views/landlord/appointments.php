@@ -38,11 +38,89 @@ $appointmentModel = new Appointment();
 $userModel = new User();
 $listingModel = new Listing();
 
+// Get filters from URL
+$search = $_GET['search'] ?? '';
+$statusFilter = $_GET['status'] ?? 'All Status';
+$dateFilter = $_GET['date'] ?? 'All Dates';
+
 // Get all appointments for this landlord's listings
 $appointments = $appointmentModel->getLandlordAppointments($landlordId);
 
+// Apply filters
+$filteredAppointments = [];
+foreach ($appointments as $appt) {
+    // Get tenant and listing details for filtering
+    $tenant = $userModel->getById($appt['seeker_id']);
+    $listing = $listingModel->getWithImages($appt['listing_id']);
+    
+    $tenantName = $tenant ? ($tenant['first_name'] . ' ' . $tenant['last_name']) : 'Deleted User';
+    $propertyName = $listing ? $listing['title'] : 'Deleted Listing';
+    
+    // Apply search filter
+    if ($search !== '') {
+        $searchLower = strtolower($search);
+        $matchesSearch = (
+            stripos($tenantName, $search) !== false ||
+            stripos($propertyName, $search) !== false ||
+            stripos($appt['appointment_date'], $search) !== false
+        );
+        if (!$matchesSearch) continue;
+    }
+    
+    // Apply status filter
+    if ($statusFilter !== 'All Status') {
+        if (strtolower($appt['status']) !== strtolower($statusFilter)) {
+            continue;
+        }
+    }
+    
+    // Apply date filter
+    if ($dateFilter !== 'All Dates') {
+        $apptDate = new DateTime($appt['appointment_date']);
+        $now = new DateTime();
+        $matchesDate = false;
+        
+        switch ($dateFilter) {
+            case 'Today':
+                $matchesDate = $apptDate->format('Y-m-d') === $now->format('Y-m-d');
+                break;
+            case 'This Week':
+                $weekStart = (clone $now)->modify('monday this week')->setTime(0, 0);
+                $weekEnd = (clone $weekStart)->modify('+6 days')->setTime(23, 59, 59);
+                $matchesDate = $apptDate >= $weekStart && $apptDate <= $weekEnd;
+                break;
+            case 'This Month':
+                $matchesDate = $apptDate->format('Y-m') === $now->format('Y-m');
+                break;
+            case 'Upcoming':
+                $matchesDate = $apptDate >= $now;
+                break;
+            case 'Past':
+                $matchesDate = $apptDate < $now;
+                break;
+        }
+        
+        if (!$matchesDate) continue;
+    }
+    
+    $filteredAppointments[] = $appt;
+}
+
+// Use filtered appointments
+$appointments = $filteredAppointments;
+
+// Pagination
+$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$limit = 5;
+$totalAppointments = count($appointments);
+$totalPages = ceil($totalAppointments / $limit);
+$offset = ($page - 1) * $limit;
+
+// Slice appointments for current page
+$paginatedAppointments = array_slice($appointments, $offset, $limit);
+
 // Format appointment data
-foreach ($appointments as &$appt) {
+foreach ($paginatedAppointments as &$appt) {
     // Get tenant details
     $tenant = $userModel->getById($appt['seeker_id']);
     if ($tenant && is_array($tenant)) {
@@ -105,6 +183,9 @@ foreach ($appointments as &$appt) {
     }
 }
 unset($appt); // Break reference
+
+// Replace original array with paginated one for display
+$appointments = $paginatedAppointments;
 ?>
     <div class="landlord-page">
         <?php include __DIR__ . '/../includes/navbar.php'; ?>
@@ -117,6 +198,45 @@ unset($appt); // Break reference
                     <p class="page-subtitle">Manage property viewing requests from potential tenants</p>
                 </div>
             </div>
+
+            <!-- Search & Filters -->
+            <form method="GET" action="appointments.php" class="glass-card animate-slide-up" style="padding: 1rem; margin-bottom: 1.5rem; background: transparent; border: none; box-shadow: none;">
+                <div class="search-bar-container">
+                    <div class="search-input-wrapper">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" name="search" class="search-input-clean" placeholder="Search by property or tenant..." value="<?php echo htmlspecialchars($search); ?>">
+                    </div>
+                    <div class="search-actions">
+                        <button type="button" class="btn-filters" onclick="document.getElementById('filterOptions').style.display = document.getElementById('filterOptions').style.display === 'none' ? 'flex' : 'none'">
+                            <i data-lucide="sliders-horizontal" style="width: 1rem; height: 1rem;"></i>
+                            Filters
+                        </button>
+                        <button type="submit" class="btn-search">
+                            Search
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Expanded Filters -->
+                <div id="filterOptions" style="display: <?php echo ($statusFilter !== 'All Status' || $dateFilter !== 'All Dates') ? 'flex' : 'none'; ?>; gap: 1rem; margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border-radius: 1rem;">
+                    <select name="status" class="form-select-sm" style="flex: 1;">
+                        <option <?php echo $statusFilter === 'All Status' ? 'selected' : ''; ?>>All Status</option>
+                        <option <?php echo $statusFilter === 'Pending' ? 'selected' : ''; ?>>Pending</option>
+                        <option <?php echo $statusFilter === 'Confirmed' ? 'selected' : ''; ?>>Confirmed</option>
+                        <option <?php echo $statusFilter === 'Declined' ? 'selected' : ''; ?>>Declined</option>
+                        <option <?php echo $statusFilter === 'Completed' ? 'selected' : ''; ?>>Completed</option>
+                        <option <?php echo $statusFilter === 'Cancelled' ? 'selected' : ''; ?>>Cancelled</option>
+                    </select>
+                    <select name="date" class="form-select-sm" style="flex: 1;">
+                        <option <?php echo $dateFilter === 'All Dates' ? 'selected' : ''; ?>>All Dates</option>
+                        <option <?php echo $dateFilter === 'Today' ? 'selected' : ''; ?>>Today</option>
+                        <option <?php echo $dateFilter === 'This Week' ? 'selected' : ''; ?>>This Week</option>
+                        <option <?php echo $dateFilter === 'This Month' ? 'selected' : ''; ?>>This Month</option>
+                        <option <?php echo $dateFilter === 'Upcoming' ? 'selected' : ''; ?>>Upcoming</option>
+                        <option <?php echo $dateFilter === 'Past' ? 'selected' : ''; ?>>Past</option>
+                    </select>
+                </div>
+            </form>
 
             <!-- Appointments List -->
             <div style="display: flex; flex-direction: column; gap: 1rem;">
@@ -201,6 +321,9 @@ unset($appt); // Break reference
                                     <i data-lucide="x" style="width: 1.25rem; height: 1.25rem;"></i>
                                 </button>
                             <?php elseif ($appointment['status'] === 'confirmed'): ?>
+                                <button class="icon-btn icon-btn-success" title="Mark as Visited" onclick="openCompleteModal(<?php echo $appointment['appointment_id']; ?>)">
+                                    <i data-lucide="check-circle" style="width: 1.25rem; height: 1.25rem;"></i>
+                                </button>
                                 <button class="icon-btn icon-btn-neutral" title="Reschedule" onclick="openRescheduleModal(<?php echo $appointment['appointment_id']; ?>)">
                                     <i data-lucide="calendar-clock" style="width: 1.25rem; height: 1.25rem;"></i>
                                 </button>
@@ -213,6 +336,48 @@ unset($appt); // Break reference
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
+
+            <!-- Pagination Controls -->
+            <?php if ($totalPages > 1): ?>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 2rem;">
+                <!-- Previous Button -->
+                <?php if ($page > 1): ?>
+                <a href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>&status=<?php echo urlencode($statusFilter); ?>&date=<?php echo urlencode($dateFilter); ?>" class="btn btn-glass btn-sm" style="text-decoration: none; display: flex; align-items: center; gap: 0.25rem;">
+                    <i data-lucide="chevron-left" style="width: 1rem; height: 1rem;"></i>
+                    Prev
+                </a>
+                <?php else: ?>
+                <button class="btn btn-glass btn-sm" disabled style="opacity: 0.5; cursor: not-allowed; display: flex; align-items: center; gap: 0.25rem;">
+                    <i data-lucide="chevron-left" style="width: 1rem; height: 1rem;"></i>
+                    Prev
+                </button>
+                <?php endif; ?>
+
+                <!-- Page Numbers -->
+                <div style="display: flex; gap: 0.25rem;">
+                    <?php for ($i = 1; $i <= max(1, $totalPages); $i++): ?>
+                        <a href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>&status=<?php echo urlencode($statusFilter); ?>&date=<?php echo urlencode($dateFilter); ?>" 
+                           class="btn btn-sm" 
+                           style="text-decoration: none; width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; padding: 0; border: 1px solid rgba(0,0,0,0.1); <?php echo $i === $page ? 'background-color: #2563eb; color: white; border-color: #2563eb;' : 'background-color: white; color: #1f2937;'; ?>">
+                            <?php echo $i; ?>
+                        </a>
+                    <?php endfor; ?>
+                </div>
+
+                <!-- Next Button -->
+                <?php if ($page < $totalPages): ?>
+                <a href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>&status=<?php echo urlencode($statusFilter); ?>&date=<?php echo urlencode($dateFilter); ?>" class="btn btn-glass btn-sm" style="text-decoration: none; display: flex; align-items: center; gap: 0.25rem;">
+                    Next
+                    <i data-lucide="chevron-right" style="width: 1rem; height: 1rem;"></i>
+                </a>
+                <?php else: ?>
+                <button class="btn btn-glass btn-sm" disabled style="opacity: 0.5; cursor: not-allowed; display: flex; align-items: center; gap: 0.25rem;">
+                    Next
+                    <i data-lucide="chevron-right" style="width: 1rem; height: 1rem;"></i>
+                </button>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -276,6 +441,24 @@ unset($appt); // Break reference
             </div>
         </div>
     </div>
+
+    <!-- Complete Appointment Modal -->
+    <div id="completeModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Mark as Visited</h3>
+                <button class="close-modal" onclick="closeModal('completeModal')"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>Confirm that the tenant has completed their viewing appointment?</p>
+                <p style="margin-top: 0.5rem; font-size: 0.875rem; color: #6b7280;">This will mark the appointment as completed.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('completeModal')">Cancel</button>
+                <button id="confirmCompleteBtn" class="btn btn-primary" style="background: #10b981;">Yes, Mark as Visited</button>
+            </div>
+        </div>
+    </div>
     
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>lucide.createIcons();</script>
@@ -295,6 +478,11 @@ unset($appt); // Break reference
         function openRescheduleModal(id) {
             currentAppointmentId = id;
             document.getElementById('rescheduleModal').classList.add('show');
+        }
+
+        function openCompleteModal(id) {
+            currentAppointmentId = id;
+            document.getElementById('completeModal').classList.add('show');
         }
 
         function closeModal(modalId) {
@@ -395,6 +583,16 @@ unset($appt); // Break reference
                 this.disabled = false;
                 this.innerHTML = 'Confirm Reschedule';
             }
+        });
+
+        // Handle Complete
+        document.getElementById('confirmCompleteBtn').addEventListener('click', function() {
+            if (!currentAppointmentId) return;
+            
+            this.disabled = true;
+            this.innerHTML = 'Marking as Visited...';
+            
+            updateStatus(currentAppointmentId, 'completed');
         });
     </script>
 </body>

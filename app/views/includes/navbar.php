@@ -94,6 +94,8 @@ if ($role === 'room_seeker') {
 <nav class="navbar">
     <!-- Load Poppins Font -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     
     <div class="navbar-container">
         <!-- Logo (Text Only) -->
@@ -271,9 +273,35 @@ if ($role === 'room_seeker') {
                                             $iconColor = '#ef4444'; // Red
                                             break;
                                             
+                                        case 'payment_received':
+                                            $icon = 'credit-card';
+                                            $iconColor = '#10b981'; // Green
+                                            break;
+                                        case 'rent_request':
+                                            $icon = 'banknote';
+                                            $iconColor = '#f59e0b'; // Amber
+                                            break;
+                                        case 'email':
+                                            $icon = 'mail';
+                                            $iconColor = '#3b82f6'; // Blue
+                                            break;
+
                                         case 'system':
+                                            $titleLower = strtolower($notif['title']);
+                                            if (strpos($titleLower, 'cancelled') !== false || strpos($titleLower, 'removed') !== false) {
+                                                $icon = 'user-minus';
+                                                $iconColor = '#ef4444'; // Red
+                                            } elseif (strpos($titleLower, 'success') !== false || strpos($titleLower, 'confirmed') !== false) {
+                                                $icon = 'check-circle';
+                                                $iconColor = '#10b981'; // Green
+                                            } else {
+                                                $icon = 'info';
+                                                $iconColor = '#6b7280'; // Gray
+                                            }
+                                            break;
+
                                         default:
-                                            $icon = 'info';
+                                            $icon = 'bell';
                                             $iconColor = '#3b82f6'; // Blue
                                             break;
                                     }
@@ -430,6 +458,10 @@ if ($role === 'room_seeker') {
         </div>
     </div>
 </nav>
+
+<!-- Toastify JS -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script src="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/js/toast-helper.js"></script>
 
 <style>
 /* Navbar Styles */

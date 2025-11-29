@@ -162,6 +162,86 @@ function getValue($array, $key, $default = '') {
                             </div>
                         </div>
                     </div>
+
+                    <!-- Payment Methods -->
+                    <div class="profile-card">
+                        <h3 class="card-title card-title-with-icon">
+                            <i data-lucide="credit-card" class="card-title-icon"></i>
+                            Payment Methods
+                        </h3>
+                        <p style="color: rgba(0,0,0,0.6); font-size: 0.875rem; margin-bottom: 1rem;">Setup how you want to receive rent payments</p>
+                        
+                        <?php
+                            $paymentMethods = [];
+                            if (!empty($user['payment_methods'])) {
+                                $decoded = json_decode($user['payment_methods'], true);
+                                if (is_array($decoded)) {
+                                    $paymentMethods = $decoded;
+                                }
+                            }
+                            
+                            // Helper to find method by type
+                            $findMethod = function($type) use ($paymentMethods) {
+                                if (!is_array($paymentMethods)) return [];
+                                
+                                foreach ($paymentMethods as $m) {
+                                    if (is_array($m) && isset($m['type']) && $m['type'] === $type) {
+                                        return $m;
+                                    }
+                                }
+                                return [];
+                            };
+                            
+                            $bank = $findMethod('bank');
+                            $ewallet = $findMethod('ewallet');
+                        ?>
+
+                        <div class="form-group-stack">
+                            <!-- Bank Transfer -->
+                            <div style="background: #f9fafb; padding: 1rem; border-radius: 0.5rem; border: 1px solid #e5e7eb;">
+                                <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.75rem; color: #374151; display: flex; align-items: center; gap: 0.5rem;">
+                                    <i data-lucide="building-2" style="width: 1rem; height: 1rem; color: #2563eb;"></i>
+                                    Bank Transfer (BDO, BPI, etc.)
+                                </h4>
+                                <div class="form-group-stack">
+                                    <div>
+                                        <label class="form-label">Bank Name</label>
+                                        <input type="text" name="payment_methods[bank][name]" class="form-input" value="<?php echo htmlspecialchars($bank['name'] ?? 'Bank Transfer (BDO)'); ?>" placeholder="e.g. BDO Unibank">
+                                    </div>
+                                    <div>
+                                        <label class="form-label">Account Name</label>
+                                        <input type="text" name="payment_methods[bank][account_name]" class="form-input" value="<?php echo htmlspecialchars($bank['account_name'] ?? ''); ?>" placeholder="Account Holder Name">
+                                    </div>
+                                    <div>
+                                        <label class="form-label">Account Number</label>
+                                        <input type="text" name="payment_methods[bank][account_number]" class="form-input" value="<?php echo htmlspecialchars($bank['account_number'] ?? ''); ?>" placeholder="0000-0000-0000">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- E-Wallet -->
+                            <div style="background: #f9fafb; padding: 1rem; border-radius: 0.5rem; border: 1px solid #e5e7eb;">
+                                <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.75rem; color: #374151; display: flex; align-items: center; gap: 0.5rem;">
+                                    <i data-lucide="wallet" style="width: 1rem; height: 1rem; color: #2563eb;"></i>
+                                    E-Wallet (GCash, Maya)
+                                </h4>
+                                <div class="form-group-stack">
+                                    <div>
+                                        <label class="form-label">Wallet Name</label>
+                                        <input type="text" name="payment_methods[ewallet][name]" class="form-input" value="<?php echo htmlspecialchars($ewallet['name'] ?? 'GCash / Maya'); ?>" placeholder="e.g. GCash">
+                                    </div>
+                                    <div>
+                                        <label class="form-label">Account Name</label>
+                                        <input type="text" name="payment_methods[ewallet][account_name]" class="form-input" value="<?php echo htmlspecialchars($ewallet['account_name'] ?? ''); ?>" placeholder="Registered Name">
+                                    </div>
+                                    <div>
+                                        <label class="form-label">Mobile Number</label>
+                                        <input type="text" name="payment_methods[ewallet][account_number]" class="form-input" value="<?php echo htmlspecialchars($ewallet['account_number'] ?? ''); ?>" placeholder="0917-123-4567">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Right Column -->
@@ -207,12 +287,6 @@ function getValue($array, $key, $default = '') {
                         </div>
                     </div>
 
-                    <!-- Company Description -->
-                    <div class="profile-card">
-                        <h3 class="card-title">Company Description</h3>
-                        <textarea name="description" class="form-textarea" rows="5" placeholder="Describe your company, services, and what makes you unique..."><?php echo htmlspecialchars(getValue($profile, 'description')); ?></textarea>
-                    </div>
-
                     <!-- Operating Hours -->
                     <div class="profile-card">
                         <h3 class="card-title card-title-with-icon">
@@ -255,20 +329,17 @@ function getValue($array, $key, $default = '') {
                         </div>
                     </div>
                 </div>
+                </div>
             </div>
 
-                    <!-- Save Button -->
-                    <div class="profile-card" style="background: linear-gradient(135deg, var(--blue), var(--deepBlue)); padding: 1.5rem;">
-                        <div style="text-align: center;">
-                            <button type="submit" class="btn btn-light" style="min-width: 200px; font-weight: 600;">
-                                <i data-lucide="save" style="width: 1.125rem; height: 1.125rem;"></i>
-                                Save Changes
-                            </button>
-                            <p style="color: rgba(255,255,255,0.8); font-size: 0.75rem; margin: 0.75rem 0 0 0;">
-                                Keep your business information up to date
-                            </p>
-                        </div>
-                    </div>
+            <!-- Save Button -->
+            <div class="profile-card" style="background: linear-gradient(135deg, var(--blue), var(--deepBlue)); padding: 1.5rem; margin-top: 2rem;">
+                <div style="text-align: center;">
+                    <button type="submit" class="btn btn-light" style="min-width: 200px; font-weight: 600;">
+                        Save Changes
+                    </button>
+                    <p style="color: rgba(255,255,255,0.8); font-size: 0.75rem; margin: 0.75rem 0 0 0;">
+                    </p>
                 </div>
             </div>
         </form>
@@ -279,7 +350,7 @@ function getValue($array, $key, $default = '') {
     <script>
         lucide.createIcons();
 
-        // Handle profile photo preview
+        // Photo preview
         document.getElementById('photoInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -298,12 +369,14 @@ function getValue($array, $key, $default = '') {
             const formData = new FormData(this);
             
             try {
-                const response = await fetch('/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/controllers/ProfileController.php?action=updateLandlordProfile', {
+                const response = await fetch('/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/controllers/ProfileController.php', {
                     method: 'POST',
                     body: formData
                 });
                 
                 const data = await response.json();
+                
+                console.log('Response data:', data);  // Debug log
                 
                 if (data.success) {
                     Toastify({
@@ -311,29 +384,41 @@ function getValue($array, $key, $default = '') {
                         duration: 3000,
                         gravity: "top",
                         position: "right",
-                        backgroundColor: "#10b981",
+                        style: {
+                            background: "#10b981",
+                        }
                     }).showToast();
                     
                     setTimeout(() => {
                         window.location.reload();
                     }, 1500);
                 } else {
+                    console.error('Save failed:', data);  // Debug log
                     Toastify({
                         text: data.message || "Failed to update profile",
                         duration: 3000,
                         gravity: "top",
                         position: "right",
-                        backgroundColor: "#ef4444",
+                        style: {
+                            background: "#ef4444",
+                        }
                     }).showToast();
                 }
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error details:', error);  // Enhanced debug log
+                
+                // Try to get response text for better debugging
+                const responseText = await response.text().catch(() => 'Unable to read response');
+                console.error('Response text:', responseText);
+                
                 Toastify({
                     text: "An error occurred while saving",
                     duration: 3000,
                     gravity: "top",
                     position: "right",
-                    backgroundColor: "#ef4444",
+                    style: {
+                        background: "#ef4444",
+                    }
                 }).showToast();
             }
         });

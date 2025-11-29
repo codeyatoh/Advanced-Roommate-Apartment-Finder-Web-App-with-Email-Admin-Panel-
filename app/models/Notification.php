@@ -122,8 +122,8 @@ class Notification extends BaseModel {
      */
     public function create($data) {
         $sql = "INSERT INTO {$this->table} 
-                (user_id, type, title, message, related_id, related_user_id) 
-                VALUES (:user_id, :type, :title, :message, :related_id, :related_user_id)";
+                (user_id, type, title, message, related_id, related_user_id, status) 
+                VALUES (:user_id, :type, :title, :message, :related_id, :related_user_id, :status)";
         
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':user_id', $data['user_id'], PDO::PARAM_INT);
@@ -132,12 +132,27 @@ class Notification extends BaseModel {
         $stmt->bindValue(':message', $data['message']);
         $stmt->bindValue(':related_id', $data['related_id'] ?? null, PDO::PARAM_INT);
         $stmt->bindValue(':related_user_id', $data['related_user_id'] ?? null, PDO::PARAM_INT);
+        $stmt->bindValue(':status', $data['status'] ?? 'unread'); // Default to unread or pending
         
         if ($stmt->execute()) {
             return $this->conn->lastInsertId();
         }
         
         return false;
+    }
+
+    /**
+     * Update notification status
+     * @param int $notificationId
+     * @param string $status
+     * @return bool
+     */
+    public function updateStatus($notificationId, $status) {
+        $sql = "UPDATE {$this->table} SET status = :status WHERE notification_id = :notification_id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':status', $status);
+        $stmt->bindValue(':notification_id', $notificationId, PDO::PARAM_INT);
+        return $stmt->execute();
     }
 
     /**
@@ -268,11 +283,17 @@ class Notification extends BaseModel {
         $stmt->execute();
         $stats['emails_sent_today'] = (int)($stmt->fetch()['count'] ?? 0);
 
-        // Failed deliveries (Column 'status' does not exist, defaulting to 0)
-        $stats['failed_deliveries'] = 0;
+        // Failed deliveries
+        $sql = "SELECT COUNT(*) as count FROM {$this->table} WHERE status = 'failed'";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        $stats['failed_deliveries'] = (int)($stmt->fetch()['count'] ?? 0);
 
-        // Pending queue (Column 'status' does not exist, defaulting to 0)
-        $stats['pending_queue'] = 0;
+        // Pending queue
+        $sql = "SELECT COUNT(*) as count FROM {$this->table} WHERE status = 'pending'";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        $stats['pending_queue'] = (int)($stmt->fetch()['count'] ?? 0);
 
         return $stats;
     }

@@ -36,6 +36,7 @@ $matches = $data['matches_list'];
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/cards.module.css">
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/forms.module.css">
     <link rel="stylesheet" href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/css/modules/room-card.module.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 <body>
     <div style="min-height: 100vh; background: linear-gradient(to bottom right, var(--softBlue-20), var(--neutral), var(--deepBlue-10));">
@@ -77,7 +78,7 @@ $matches = $data['matches_list'];
                                     <h2 style="font-size: 1.25rem; font-weight: 700; color: #000000; margin: 0 0 0.125rem 0;">Recommended for You</h2>
                                     <p style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); margin: 0;">Based on your preferences</p>
                                 </div>
-                                <button class="btn btn-ghost btn-sm">
+                                <button class="btn btn-ghost btn-sm" onclick="window.location.href='browse_rooms.php'">
                                     View All
                                     <i data-lucide="arrow-right" class="btn-icon"></i>
                                 </button>
@@ -151,13 +152,9 @@ $matches = $data['matches_list'];
                                         elseif ($seconds < 86400) $timeAgo = floor($seconds/3600) . 'h ago';
                                         else $timeAgo = floor($seconds/86400) . 'd ago';
                                         
-                                        $icon = 'activity';
-                                        if (strpos($activity['action'], 'login') !== false) $icon = 'log-in';
-                                        elseif (strpos($activity['action'], 'view') !== false) $icon = 'eye';
-                                        elseif (strpos($activity['action'], 'book') !== false) $icon = 'calendar';
-                                        elseif (strpos($activity['action'], 'save') !== false) $icon = 'heart';
+                                        $icon = $activity['icon'] ?? 'activity';
                                     ?>
-                                    <div style="display: flex; align-items: start; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                    <a href="<?php echo htmlspecialchars($activity['link'] ?? '#'); ?>" style="text-decoration: none; color: inherit; display: flex; align-items: start; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid rgba(0,0,0,0.05); transition: background 0.2s; padding: 0.5rem; border-radius: 0.5rem; margin: -0.5rem;" onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background='transparent'">
                                         <div style="background: rgba(59, 130, 246, 0.1); padding: 0.5rem; border-radius: 0.5rem;">
                                             <i data-lucide="<?php echo $icon; ?>" style="width: 1rem; height: 1rem; color: #3b82f6;"></i>
                                         </div>
@@ -165,7 +162,7 @@ $matches = $data['matches_list'];
                                             <p style="font-size: 0.875rem; font-weight: 500; margin: 0 0 0.125rem 0;"><?php echo htmlspecialchars($activity['description']); ?></p>
                                             <p style="font-size: 0.75rem; color: rgba(0,0,0,0.5); margin: 0;"><?php echo $timeAgo; ?></p>
                                         </div>
-                                    </div>
+                                    </a>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
                             </div>
@@ -279,9 +276,26 @@ $matches = $data['matches_list'];
         </div>
         <?php include __DIR__ . '/../includes/report_widget.php'; ?>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         lucide.createIcons();
+
+        // Display flash messages
+        <?php if (isset($_SESSION['flash_message'])): ?>
+        Toastify({
+            text: "<?php echo addslashes($_SESSION['flash_message']); ?>",
+            duration: 4000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "<?php echo $_SESSION['flash_type'] === 'success' ? '#10b981' : '#ef4444'; ?>",
+            stopOnFocus: true
+        }).showToast();
+        <?php 
+            unset($_SESSION['flash_message']);
+            unset($_SESSION['flash_type']);
+        endif; 
+        ?>
 
         // Toggle Favorite Logic
         document.querySelectorAll('.room-card-favorite').forEach(btn => {

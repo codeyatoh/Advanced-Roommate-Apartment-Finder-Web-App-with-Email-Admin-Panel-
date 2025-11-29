@@ -14,10 +14,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const isActive = modal.classList.contains('active');
         if (isActive) {
             modal.classList.remove('active');
-            toggleBtn.querySelector('i').setAttribute('data-lucide', 'message-square-warning');
+            toggleBtn.innerHTML = '<i data-lucide="message-square-warning" style="width: 1.5rem; height: 1.5rem;"></i>';
         } else {
             modal.classList.add('active');
-            toggleBtn.querySelector('i').setAttribute('data-lucide', 'x');
+            toggleBtn.innerHTML = '<i data-lucide="x" style="width: 1.5rem; height: 1.5rem;"></i>';
         }
         lucide.createIcons();
     }
@@ -65,26 +65,54 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Sending...';
         lucide.createIcons();
 
-        // Simulate API call
-        setTimeout(() => {
-            // Success state
-            submitBtn.innerHTML = '<i data-lucide="check"></i> Sent!';
-            lucide.createIcons();
-            
-            // Show toast
-            if (window.showToast) {
-                window.showToast('Report submitted successfully', 'success');
-            } else {
-                alert('Report submitted successfully');
-            }
+        // Send API request
+        fetch('/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/controllers/ReportController.php?action=create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                type: typeSelect.value,
+                category: categorySelect.value,
+                target: form.querySelector('input[name="target"]').value,
+                description: form.querySelector('textarea[name="description"]').value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Success state
+                submitBtn.innerHTML = '<i data-lucide="check"></i> Sent!';
+                lucide.createIcons();
+                
+                // Show toast
+                if (window.showToast) {
+                    window.showToast(data.message, 'success');
+                } else {
+                    alert(data.message);
+                }
 
-            // Reset and close
-            setTimeout(() => {
-                form.reset();
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
-                toggleModal();
-            }, 1500);
-        }, 1000);
+                // Reset and close
+                setTimeout(() => {
+                    form.reset();
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                    toggleModal();
+                }, 1500);
+            } else {
+                throw new Error(data.message || 'Failed to submit report');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+            
+            if (window.showToast) {
+                window.showToast(error.message, 'error');
+            } else {
+                alert(error.message);
+            }
+        });
     });
 });

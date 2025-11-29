@@ -31,16 +31,16 @@
     $smsSentToday = 0;
     $failedDeliveries = 0;
     $pendingQueue = 0;
-    $notifications = [];
+    $adminNotifications = [];
 
     // Get filters
     $search = $_GET['search'] ?? '';
-    $type = $_GET['type'] ?? 'All Types';
+    $type = $_GET['type'] ?? 'email';
     $status = $_GET['status'] ?? 'All Status';
     
     try {
-        // Count emails sent today
-        $sql = "SELECT COUNT(*) as count FROM notifications WHERE DATE(created_at) = :today AND type = 'email'";
+        // Count emails sent today (only successful ones)
+        $sql = "SELECT COUNT(*) as count FROM notifications WHERE DATE(created_at) = :today AND type = 'email' AND status IN ('sent', 'delivered')";
         $stmt = $conn->prepare($sql);
         $stmt->bindValue(':today', $today);
         $stmt->execute();
@@ -90,12 +90,20 @@
             return $days . ' ' . ($days == 1 ? 'day' : 'days') . ' ago';
         }
         
+        // Pagination
+        $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+        $limit = 5;
+        $totalNotifications = count($notificationsData);
+        $totalPages = ceil($totalNotifications / $limit);
+        $offset = ($page - 1) * $limit;
+        $notificationsData = array_slice($notificationsData, $offset, $limit);
+        
         // Format notification data
         foreach ($notificationsData as $notifData) {
             $recipientName = ($notifData['first_name'] ?? 'Unknown') . ' ' . ($notifData['last_name'] ?? 'User');
             $recipient = $notifData['type'] === 'email' ? ($notifData['user_email'] ?? 'N/A') : ($notifData['phone'] ?? 'N/A');
             
-            $notifications[] = [
+            $adminNotifications[] = [
                 'id' => $notifData['notification_id'],
                 'type' => $notifData['type'] ?? 'email',
                 'recipient' => $recipient,
@@ -107,11 +115,11 @@
                 'error' => $notifData['status'] === 'failed' ? 'Delivery failed' : null,
             ];
         }
-    } catch (PDOException $e) {
+    } catch (Throwable $e) {
         // Table doesn't exist yet - use default values (all zeros)
-        error_log("Notifications table not found: " . $e->getMessage());
+        error_log("Notifications error: " . $e->getMessage());
         // Stats already initialized to 0 above
-        // $notifications already initialized to empty array above
+        // $adminNotifications already initialized to empty array above
     }
     ?>
     <div class="admin-page">
@@ -138,16 +146,6 @@
 
                 <div class="glass-card stat-card animate-slide-up" style="animation-delay: 0.2s;">
                     <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
-                        <div class="stat-icon-wrapper" style="background-color: #22c55e;">
-                            <i data-lucide="message-square" class="stat-icon"></i>
-                        </div>
-                    </div>
-                    <p class="stat-value"><?php echo $smsSentToday; ?></p>
-                    <p class="stat-label">SMS Sent Today</p>
-                </div>
-
-                <div class="glass-card stat-card animate-slide-up" style="animation-delay: 0.3s;">
-                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
                         <div class="stat-icon-wrapper" style="background-color: #ef4444;">
                             <i data-lucide="x-circle" class="stat-icon"></i>
                         </div>
@@ -156,7 +154,7 @@
                     <p class="stat-label">Failed Deliveries</p>
                 </div>
 
-                <div class="glass-card stat-card animate-slide-up" style="animation-delay: 0.4s;">
+                <div class="glass-card stat-card animate-slide-up" style="animation-delay: 0.3s;">
                     <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
                         <div class="stat-icon-wrapper" style="background-color: #eab308;">
                             <i data-lucide="clock" class="stat-icon"></i>
@@ -187,10 +185,8 @@
                 
                 <!-- Expanded Filters -->
                 <div id="filterOptions" style="display: <?php echo ($type !== 'All Types' || $status !== 'All Status') ? 'flex' : 'none'; ?>; gap: 1rem; margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border-radius: 1rem;">
-                    <select name="type" class="form-select-sm" style="flex: 1;">
-                        <option <?php echo $type === 'All Types' ? 'selected' : ''; ?>>All Types</option>
-                        <option <?php echo $type === 'Email' ? 'selected' : ''; ?>>Email</option>
-                        <option <?php echo $type === 'SMS' ? 'selected' : ''; ?>>SMS</option>
+                    <select name="type" class="form-select-sm" style="flex: 1; display: none;"> <!-- Hidden as only Email is supported -->
+                        <option selected>Email</option>
                     </select>
                     <select name="status" class="form-select-sm" style="flex: 1;">
                         <option <?php echo $status === 'All Status' ? 'selected' : ''; ?>>All Status</option>
@@ -219,10 +215,11 @@
                         <tbody>
                             <?php
                             // Notifications already loaded from database above
-                            foreach ($notifications as $notification): 
+                            foreach ($adminNotifications as $notification): 
                                 $statusClass = '';
                                 $statusIcon = '';
                                 switch ($notification['status']) {
+                                    case 'sent': // Treat sent as success/delivered for now
                                     case 'delivered': 
                                         $statusClass = 'status-success'; 
                                         $statusIcon = 'check-circle';
@@ -235,17 +232,22 @@
                                         $statusClass = 'status-warning'; 
                                         $statusIcon = 'clock';
                                         break;
+                                    default:
+                                        $statusClass = 'status-neutral';
+                                        $statusIcon = 'help-circle';
+                                }
+                                
+                                // Extract OTP if present
+                                $otp = '';
+                                if (preg_match('/\d{6}/', $notification['subject'], $matches)) {
+                                    $otp = $matches[0];
                                 }
                             ?>
                             <tr>
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                        <?php if ($notification['type'] === 'email'): ?>
-                                            <i data-lucide="mail" style="width: 1.25rem; height: 1.25rem; color: #2563eb;"></i>
-                                        <?php else: ?>
-                                            <i data-lucide="message-square" style="width: 1.25rem; height: 1.25rem; color: #16a34a;"></i>
-                                        <?php endif; ?>
-                                        <span style="font-size: 0.875rem; font-weight: 600; color: #000; text-transform: capitalize;"><?php echo $notification['type']; ?></span>
+                                        <i data-lucide="mail" style="width: 1.25rem; height: 1.25rem; color: #2563eb;"></i>
+                                        <span style="font-size: 0.875rem; font-weight: 600; color: #000; text-transform: capitalize;">Email</span>
                                     </div>
                                 </td>
                                 <td>
@@ -276,9 +278,9 @@
                                 </td>
                                 <td>
                                     <div style="display: flex; align-items: center; justify-content: flex-end; gap: 0.5rem;">
-                                        <?php if ($notification['status'] === 'failed'): ?>
-                                            <button class="btn btn-primary btn-sm">
-                                                <i data-lucide="send" style="width: 1rem; height: 1rem;"></i>
+                                        <?php if ($notification['status'] === 'failed' && $otp): ?>
+                                            <button class="btn btn-primary btn-sm" onclick="retryEmail(this, <?php echo $notification['id']; ?>, '<?php echo $notification['recipient']; ?>', '<?php echo addslashes($notification['recipientName']); ?>', '<?php echo $otp; ?>')">
+                                                <i data-lucide="refresh-cw" style="width: 1rem; height: 1rem;"></i>
                                                 Retry
                                             </button>
                                         <?php endif; ?>
@@ -291,12 +293,140 @@
                     </table>
                 </div>
             </div>
+            
+            <!-- Pagination Controls -->
+            <?php if (isset($totalPages) && $totalPages > 1): ?>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 2rem;">
+                <!-- Previous Button -->
+                <?php if ($page > 1): ?>
+                <a href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>&type=<?php echo urlencode($type); ?>&status=<?php echo urlencode($status); ?>" class="btn btn-glass btn-sm" style="text-decoration: none; display: flex; align-items: center; gap: 0.25rem;">
+                    <i data-lucide="chevron-left" style="width: 1rem; height: 1rem;"></i>
+                    Prev
+                </a>
+                <?php else: ?>
+                <button class="btn btn-glass btn-sm" disabled style="opacity: 0.5; cursor: not-allowed; display: flex; align-items: center; gap: 0.25rem;">
+                    <i data-lucide="chevron-left" style="width: 1rem; height: 1rem;"></i>
+                    Prev
+                </button>
+                <?php endif; ?>
+
+                <!-- Page Numbers -->
+                <div style="display: flex; gap: 0.25rem;">
+                    <?php 
+                    $range = 1; // Number of pages around current page
+                    $showDots = true;
+                    
+                    for ($i = 1; $i <= max(1, $totalPages); $i++):
+                        // Show first, last, and pages around current
+                        if ($i == 1 || $i == $totalPages || ($i >= $page - $range && $i <= $page + $range)) {
+                    ?>
+                        <a href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>&type=<?php echo urlencode($type); ?>&status=<?php echo urlencode($status); ?>" 
+                           class="btn btn-sm" 
+                           style="text-decoration: none; width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; padding: 0; border: 1px solid rgba(0,0,0,0.1); <?php echo $i === $page ? 'background-color: #2563eb; color: white; border-color: #2563eb;' : 'background-color: white; color: #1f2937;'; ?>">
+                            <?php echo $i; ?>
+                        </a>
+                    <?php
+                            $showDots = true;
+                        } elseif ($showDots) {
+                            echo '<span style="display: flex; align-items: center; justify-content: center; width: 2rem; color: #6b7280;">...</span>';
+                            $showDots = false;
+                        }
+                    endfor; 
+                    ?>
+                </div>
+
+                <!-- Next Button -->
+                <?php if ($page < $totalPages): ?>
+                <a href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>&type=<?php echo urlencode($type); ?>&status=<?php echo urlencode($status); ?>" class="btn btn-glass btn-sm" style="text-decoration: none; display: flex; align-items: center; gap: 0.25rem;">
+                    Next
+                    <i data-lucide="chevron-right" style="width: 1rem; height: 1rem;"></i>
+                </a>
+                <?php else: ?>
+                <button class="btn btn-glass btn-sm" disabled style="opacity: 0.5; cursor: not-allowed; display: flex; align-items: center; gap: 0.25rem;">
+                    Next
+                    <i data-lucide="chevron-right" style="width: 1rem; height: 1rem;"></i>
+                </button>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 
+    <?php
+    // Load EmailJS config
+    $emailJsConfig = require_once __DIR__ . '/../../../config/emailjs.php';
+    ?>
+    
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    
     <script>
         lucide.createIcons();
+        
+        // Initialize EmailJS
+        emailjs.init('<?php echo $emailJsConfig['public_key']; ?>');
+        
+        async function retryEmail(btn, notificationId, email, name, otp) {
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin" style="width: 1rem; height: 1rem;"></i> Sending...';
+            btn.disabled = true;
+            lucide.createIcons();
+            
+            try {
+                // Send via EmailJS
+                await emailjs.send(
+                    '<?php echo $emailJsConfig['service_id']; ?>',
+                    '<?php echo $emailJsConfig['otp_template_id']; ?>',
+                    {
+                        to_email: email,
+                        to_name: name,
+                        otp_code: otp
+                    }
+                );
+                
+                // Update status in backend
+                await fetch('../../controllers/NotificationController.php?action=updateStatus', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        notification_id: notificationId,
+                        status: 'sent'
+                    })
+                });
+                
+                Toastify({
+                    text: "Email resent successfully!",
+                    duration: 3000,
+                    gravity: "top",
+                    position: "right",
+                    backgroundColor: "#10b981",
+                }).showToast();
+                
+                // Reload page after short delay
+                setTimeout(() => location.reload(), 1500);
+                
+            } catch (error) {
+                console.error('Retry failed:', error);
+                
+                Toastify({
+                    text: "Failed to resend email.",
+                    duration: 3000,
+                    gravity: "top",
+                    position: "right",
+                    backgroundColor: "#ef4444",
+                }).showToast();
+                
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                lucide.createIcons();
+            }
+        }
     </script>
 </body>
 </html>

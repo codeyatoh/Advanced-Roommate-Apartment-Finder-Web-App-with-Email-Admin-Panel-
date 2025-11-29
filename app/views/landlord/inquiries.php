@@ -82,6 +82,58 @@ foreach ($inquiries as &$inquiry) {
     $inquiry['message'] = $inquiry['last_message'];
     $inquiry['unread'] = $inquiry['unread_count'] > 0;
 }
+unset($inquiry); // Break the reference with the last element
+
+// Check if we have a user_id parameter (direct link from tenant list)
+$directUserId = isset($_GET['user_id']) ? intval($_GET['user_id']) : null;
+
+if ($directUserId) {
+    // Check if this user already exists in inquiries
+    $userExists = false;
+    $existingKey = -1;
+    
+    foreach ($inquiries as $key => $inquiry) {
+        if ($inquiry['other_user_id'] == $directUserId) {
+            $userExists = true;
+            $existingKey = $key;
+            break;
+        }
+    }
+    
+    if ($userExists) {
+        // If user exists, move them to top so they are selected by default logic
+        if ($existingKey > 0) {
+            $item = $inquiries[$existingKey];
+            unset($inquiries[$existingKey]);
+            array_unshift($inquiries, $item);
+            $inquiries = array_values($inquiries); // Re-index
+        }
+    } else {
+        // If user doesn't exist in inquiries, create a virtual inquiry for them
+        $user = $userModel->getById($directUserId);
+        if ($user && is_array($user)) {
+            $virtualInquiry = [
+                'other_user_id' => $directUserId,
+                'listing_id' => null,
+                'last_message' => 'Start a conversation',
+                'last_message_time' => date('Y-m-d H:i:s'),
+                'unread_count' => 0,
+                'tenant' => $user['first_name'] . ' ' . $user['last_name'],
+                'email' => $user['email'] ?? '',
+                'phone' => $user['phone'] ?? '',
+                'avatar' => $user['profile_photo'] ?? 'https://ui-avatars.com/api/?name=' . urlencode($user['first_name'] . ' ' . $user['last_name']) . '&background=10b981&color=fff',
+                'property' => 'New Conversation',
+                'time' => 'Just now',
+                'id' => $directUserId . '_0',
+                'message' => 'Start a conversation',
+                'unread' => false
+            ];
+            
+            // Add to beginning of inquiries array
+            array_unshift($inquiries, $virtualInquiry);
+        }
+    }
+}
 
 // Get full conversation for first inquiry (if exists)
 $firstInquiryMessages = [];

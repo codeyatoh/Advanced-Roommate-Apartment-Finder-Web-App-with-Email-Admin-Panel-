@@ -43,6 +43,9 @@
             exit;
         }
 
+        // Increment view count
+        $listingModel->incrementViews($listingId);
+
         $isSaved = $savedListingModel->isSaved($userId, $listingId);
 
         include __DIR__ . '/../includes/navbar.php'; 
@@ -228,11 +231,31 @@
                                 </p>
                             </div>
 
+                            <?php 
+                            $bedsAvailable = $listing['bedrooms'] - $listing['current_roommates'];
+                            $isFull = $bedsAvailable <= 0;
+                            ?>
+
                             <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
-                                <a href="messages.php?user_id=<?php echo $listing['landlord_id']; ?>&listing_id=<?php echo $listingId; ?>" class="btn btn-primary btn-lg" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 0.5rem; text-decoration: none;">
-                                    <i data-lucide="message-circle" class="btn-icon"></i>
-                                    Message Landlord
-                                </a>
+                                <?php if ($isFull): ?>
+                                    <!-- FULL STATE -->
+                                    <div class="btn btn-lg" style="width: 100%; background: #fee2e2; color: #ef4444; border: 2px solid #ef4444; cursor: not-allowed; display: flex; justify-content: center; align-items: center; gap: 0.5rem; pointer-events: none;">
+                                        <i data-lucide="ban" class="btn-icon"></i>
+                                        ROOM FULL - No Beds Available
+                                    </div>
+                                <?php else: ?>
+                                    <!-- AVAILABLE STATE -->
+                                    <a href="messages.php?user_id=<?php echo $listing['landlord_id']; ?>&listing_id=<?php echo $listingId; ?>" class="btn btn-primary btn-lg" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 0.5rem; text-decoration: none;">
+                                        <i data-lucide="message-circle" class="btn-icon"></i>
+                                        Message Landlord
+                                    </a>
+                                    
+                                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/seeker/rent_request.php?listing_id=<?php echo $listingId; ?>" class="btn btn-primary btn-lg" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 0.5rem; text-decoration: none; background: #10b981; border-color: #10b981;">
+                                        <i data-lucide="credit-card" class="btn-icon"></i>
+                                        Rent Now (<?php echo $bedsAvailable; ?> bed<?php echo $bedsAvailable != 1 ? 's' : ''; ?> left)
+                                    </a>
+                                <?php endif; ?>
+
                                 <?php 
                                 require_once __DIR__ . '/../../models/Appointment.php';
                                 $appointmentModel = new Appointment();
@@ -240,9 +263,9 @@
                                 ?>
                                 <button class="btn btn-glass btn-lg" 
                                         style="width: 100%; border-color: var(--primary); color: var(--primary);"
-                                        <?php echo $hasPendingRequest ? 'disabled' : 'onclick="openModal()"'; ?>>
+                                        <?php echo ($hasPendingRequest || $isFull) ? 'disabled' : 'onclick="openModal()"'; ?>>
                                     <i data-lucide="calendar" class="btn-icon"></i>
-                                    <?php echo $hasPendingRequest ? 'Already Requested' : 'Request Viewing'; ?>
+                                    <?php echo $hasPendingRequest ? 'Already Requested' : ($isFull ? 'Room Full' : 'Request Viewing'); ?>
                                 </button>
                             </div>
                             
@@ -311,6 +334,9 @@
                     Send Request
                 </button>
             </div>
+            
+            <!-- Rent Now Button (Added) -->
+
         </div>
     </div>
 
