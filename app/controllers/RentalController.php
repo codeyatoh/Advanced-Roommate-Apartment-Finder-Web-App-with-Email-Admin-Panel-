@@ -187,7 +187,15 @@ class RentalController {
     public function confirmPayment($data) {
         session_start();
         // Check if landlord
-        // In real app check permissions
+        // Allow fallback for dev/testing to match rentals.php
+        $userId = $_SESSION['user_id'] ?? 2;
+        $userRole = $_SESSION['role'] ?? 'landlord';
+
+        if (!$userId || $userRole !== 'landlord') {
+            // Handle unauthorized
+            header('Location: /Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/public/login.php');
+            exit;
+        }
         
         $rentalId = $data['rental_id'];
         $db = new Database();
@@ -211,6 +219,11 @@ class RentalController {
         $rental = $stmt->fetch();
 
         if ($rental) {
+            // Verify landlord owns this rental
+            if ($rental['landlord_id'] !== $userId) {
+                die("Unauthorized");
+            }
+
             $sql = "UPDATE listings SET current_roommates = current_roommates + 1 WHERE listing_id = :listing_id";
             $stmt = $conn->prepare($sql);
             $stmt->bindValue(':listing_id', $rental['listing_id']);
@@ -260,6 +273,57 @@ class RentalController {
                     'transaction_id' => 'MANUAL-' . time()
                 ];
             }
+        }
+
+        header('Location: /Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/landlord/rentals.php');
+        exit;
+    }
+
+    public function declinePayment($data) {
+        session_start();
+        // Allow fallback for dev/testing
+        $userId = $_SESSION['user_id'] ?? 2;
+        $userRole = $_SESSION['role'] ?? 'landlord';
+
+        if (!$userId || $userRole !== 'landlord') {
+            header('Location: /Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/public/login.php');
+            exit;
+        }
+
+        $rentalId = $data['rental_id'];
+        $db = new Database();
+        $conn = $db->getConnection();
+
+        // Update Payment Status to Rejected
+        $sql = "UPDATE payments SET status = 'failed' WHERE rental_id = :rental_id";
+        $stmt = $conn->prepare($sql);
+        $stmt->bindValue(':rental_id', $rentalId);
+        $stmt->execute();
+
+        // Get rental info for notification
+        $sql = "SELECT r.tenant_id, r.landlord_id, l.title 
+                FROM rentals r 
+                JOIN listings l ON r.listing_id = l.listing_id
+                WHERE r.rental_id = :rental_id";
+        $stmt = $conn->prepare($sql);
+        $stmt->bindValue(':rental_id', $rentalId);
+        $stmt->execute();
+        $rental = $stmt->fetch();
+
+        if ($rental) {
+            if ($rental['landlord_id'] !== $userId) {
+                die("Unauthorized");
+            }
+
+            // Notify Tenant
+            $this->notificationModel->create([
+                'user_id' => $rental['tenant_id'],
+                'related_user_id' => $rental['landlord_id'],
+                'type' => 'system',
+                'title' => 'Payment Declined',
+                'message' => 'Your rent payment for ' . $rental['title'] . ' was declined. Please contact the landlord.',
+                'link' => '/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/seeker/dashboard.php'
+            ]);
         }
 
         header('Location: /Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/landlord/rentals.php');
@@ -374,6 +438,8 @@ if ($action) {
         $controller->paymentSuccess($_GET);
     } elseif ($action === 'confirm_payment') {
         $controller->confirmPayment($_GET);
+    } elseif ($action === 'decline_payment') {
+        $controller->declinePayment($_GET);
     } elseif ($action === 'remove_tenant' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $controller->removeTenant($_POST);
     }

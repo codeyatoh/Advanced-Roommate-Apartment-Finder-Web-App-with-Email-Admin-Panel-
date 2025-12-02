@@ -60,7 +60,11 @@ if (isset($_SESSION['user_id'])) {
     
     // Appointments (Landlord)
     $nav_pendingAppointments = 0;
+    $nav_unseenRentals = 0;
     if ($role === 'landlord') {
+        require_once __DIR__ . '/../../models/Rental.php';
+        $rentalModel = new Rental();
+        $nav_unseenRentals = $rentalModel->getUnseenCount($userId);
         $nav_pendingAppointments = $appointmentModel->getPendingCount($userId);
         
         // Check if seen
@@ -98,9 +102,9 @@ if ($role === 'room_seeker') {
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     
     <div class="navbar-container">
-        <!-- Logo (Text Only) -->
+        <!-- Logo -->
         <a href="#" class="navbar-logo">
-            <span>RoomFinder</span>
+            <img src="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/images/logo.png" alt="RoomFinder" style="height: 5rem; width: auto;">
         </a>
 
         <!-- Navigation Links with Icons -->
@@ -143,6 +147,13 @@ if ($role === 'room_seeker') {
                 <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/landlord/listings.php" class="navbar-link <?php echo $current_page === 'listings.php' ? 'active' : ''; ?>">
                     <i data-lucide="home" class="nav-icon"></i>
                     <span>Listings</span>
+                </a>
+                <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/landlord/rentals.php" class="navbar-link <?php echo $current_page === 'rentals.php' ? 'active' : ''; ?>">
+                    <i data-lucide="credit-card" class="nav-icon"></i>
+                    <span>Rentals</span>
+                    <?php if ($nav_unseenRentals > 0): ?>
+                    <span class="notification-badge"><?php echo $nav_unseenRentals; ?></span>
+                    <?php endif; ?>
                 </a>
                 <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/landlord/inquiries.php" class="navbar-link <?php echo $current_page === 'inquiries.php' ? 'active' : ''; ?>">
                     <i data-lucide="message-square" class="nav-icon"></i>
@@ -401,6 +412,10 @@ if ($role === 'room_seeker') {
                         <i data-lucide="home"></i>
                         <span>Listings</span>
                     </a>
+                    <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/landlord/rentals.php" class="mobile-nav-link">
+                        <i data-lucide="credit-card"></i>
+                        <span>Rentals</span>
+                    </a>
                     <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/landlord/inquiries.php" class="mobile-nav-link">
                         <i data-lucide="message-square"></i>
                         <span>Inquiries</span>
@@ -470,7 +485,7 @@ if ($role === 'room_seeker') {
     top: 0;
     left: 0;
     right: 0;
-    height: 4.5rem; /* Slightly taller */
+    height: 6rem; /* Taller for larger logo */
     background: var(--glass-bg-strong);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -787,7 +802,7 @@ if ($role === 'room_seeker') {
 /* Mobile Overlay */
 .navbar-mobile-overlay {
     position: fixed;
-    top: 70px; /* Below navbar */
+    top: 6rem; /* Below navbar */
     left: 0;
     right: 0;
     bottom: 0;

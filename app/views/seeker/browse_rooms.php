@@ -265,7 +265,7 @@
                                             if ($bedsAvailable <= 0) {
                                                 echo '<span style="color: #ef4444; font-weight: 600;">FULL</span>';
                                             } else {
-                                                echo $bedsAvailable . ' bed' . ($bedsAvailable != 1 ? 's' : '') . ' left';
+                                                echo $bedsAvailable . ' bed' . ($bedsAvailable != 1 ? 's' : '') . ' available';
                                             }
                                             ?>
                                         </div>

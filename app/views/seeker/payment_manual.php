@@ -10,7 +10,7 @@ $rentalId = $_GET['rental_id'] ?? 0;
 
 // Handle Form Submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['proof'])) {
-    $uploadDir = __DIR__ . '/../../public/uploads/payments/';
+    $uploadDir = __DIR__ . '/../../../public/uploads/payments/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
     }

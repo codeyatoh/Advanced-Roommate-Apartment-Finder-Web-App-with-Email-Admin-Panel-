@@ -26,7 +26,8 @@ Think of it as a dating app... but for finding your next home! 😄
 ### For Landlords
 
 - 📝 **List Properties**: Easy listing creation with image uploads
-- 💰 **Rental Management**: Track payments and tenant information
+- 💰 **Rental Management**: Track payments, view proof of payment, and manage tenant information
+- 🔔 **Notifications**: Get notified of new rentals with a badge indicator
 - 📨 **Inquiry Management**: Handle messages from interested seekers
 - 📊 **Dashboard**: View your listings and rental stats
 
@@ -210,7 +211,7 @@ After importing the database, you can use these accounts:
 **Admin Account:**
 
 - Email: `admin@roomfinder.com`
-- Password: `admin123`
+- Password: `password`
 
 **Test Seeker:**
 

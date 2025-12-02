@@ -358,7 +358,7 @@
                 </div>
 
                 <div class="footer-bottom">
-                    <p class="footer-copyright">&copy; 2024 RoomFinder. All rights reserved.</p>
+                    <p class="footer-copyright">&copy; 2025 RoomFinder. All rights reserved.</p>
                 </div>
             </div>
         </footer>

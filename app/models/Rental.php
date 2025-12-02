@@ -36,4 +36,19 @@ class Rental extends BaseModel {
         $stmt->execute();
         return $stmt->fetchAll();
     }
+    public function getUnseenCount($landlordId) {
+        $sql = "SELECT COUNT(*) as count FROM {$this->table} WHERE landlord_id = :landlord_id AND is_seen = 0";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':landlord_id', $landlordId);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result['count'] ?? 0;
+    }
+
+    public function markAllAsSeen($landlordId) {
+        $sql = "UPDATE {$this->table} SET is_seen = 1 WHERE landlord_id = :landlord_id AND is_seen = 0";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':landlord_id', $landlordId);
+        return $stmt->execute();
+    }
 }

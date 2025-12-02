@@ -14,8 +14,19 @@ $matchModel = new RoommateMatch();
 // Get profile completion
 $completion = $userModel->getProfileCompletion($userId);
 
-// Get unseenprofiles for swiping
-$unseenProfiles = $matchModel->getUnseenProfiles($userId, 1);
+// Get current user profile for matching
+$currentUserProfile = $userModel->getUserWithProfile($userId);
+$myPreferences = [];
+if (!empty($currentUserProfile['profile']['preferences'])) {
+    $myPrefsData = json_decode($currentUserProfile['profile']['preferences'], true);
+    if (is_array($myPrefsData)) {
+        $myPreferences = $myPrefsData;
+    }
+}
+
+// Get unseenprofiles for swiping (filtered by gender)
+$userGender = $currentUserProfile['gender'] ?? null;
+$unseenProfiles = $matchModel->getUnseenProfiles($userId, 1, $userGender);
 $currentProfile = !empty($unseenProfiles) ? $unseenProfiles[0] : null;
 
 // Get pending matches (who liked you)
@@ -23,9 +34,6 @@ $pendingMatches = $matchModel->getPendingMatches($userId);
 
 // Get mutual matches
 $mutualMatches = $matchModel->getMutualMatches($userId);
-
-// Get current user profile for matching
-$currentUserProfile = $userModel->getUserWithProfile($userId);
 $myPreferences = [];
 if (!empty($currentUserProfile['profile']['preferences'])) {
     $myPrefsData = json_decode($currentUserProfile['profile']['preferences'], true);

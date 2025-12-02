@@ -252,7 +252,7 @@
                                     
                                     <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/seeker/rent_request.php?listing_id=<?php echo $listingId; ?>" class="btn btn-primary btn-lg" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 0.5rem; text-decoration: none; background: #10b981; border-color: #10b981;">
                                         <i data-lucide="credit-card" class="btn-icon"></i>
-                                        Rent Now (<?php echo $bedsAvailable; ?> bed<?php echo $bedsAvailable != 1 ? 's' : ''; ?> left)
+                                        Rent Now (<?php echo $bedsAvailable; ?> bed<?php echo $bedsAvailable != 1 ? 's' : ''; ?> available)
                                     </a>
                                 <?php endif; ?>
 

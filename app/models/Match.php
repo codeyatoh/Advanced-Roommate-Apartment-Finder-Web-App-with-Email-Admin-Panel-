@@ -187,10 +187,11 @@ class RoommateMatch extends BaseModel {
      * Get seekers that haven't been rated yet (for swiping)
      * @param int $seekerId Current user ID
      * @param int $limit Number of profiles to fetch
+     * @param string|null $gender Filter by gender (optional)
      * @return array
      */
-    public function getUnseenProfiles($seekerId, $limit = 10) {
-        $sql = "SELECT u.user_id, u.first_name, u.last_name, u.profile_photo, u.bio,
+    public function getUnseenProfiles($seekerId, $limit = 10, $gender = null) {
+        $sql = "SELECT u.user_id, u.first_name, u.last_name, u.profile_photo, u.bio, u.gender,
                        sp.occupation, sp.budget, sp.move_in_date,
                        sp.sleep_schedule, sp.social_level, sp.cleanliness,
                        sp.preferences
@@ -203,14 +204,24 @@ class RoommateMatch extends BaseModel {
                       SELECT target_seeker_id 
                       FROM {$this->table} 
                       WHERE seeker_id = :seeker_id2
-                  )
-                ORDER BY u.created_at DESC
-                LIMIT :limit";
+                  )";
+        
+        // Add gender filter if specified and is male/female
+        if ($gender && in_array(strtolower($gender), ['male', 'female'])) {
+            $sql .= " AND u.gender = :gender";
+        }
+
+        $sql .= " ORDER BY u.created_at DESC LIMIT :limit";
         
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':seeker_id', $seekerId, PDO::PARAM_INT);
         $stmt->bindValue(':seeker_id2', $seekerId, PDO::PARAM_INT);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        
+        if ($gender && in_array(strtolower($gender), ['male', 'female'])) {
+            $stmt->bindValue(':gender', $gender);
+        }
+        
         $stmt->execute();
         
         return $stmt->fetchAll();

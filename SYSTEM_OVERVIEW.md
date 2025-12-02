@@ -154,7 +154,9 @@ rentals
 ├── end_date
 ├── monthly_rent
 ├── payment_status
-└── stripe_payment_id
+├── stripe_payment_id
+├── is_seen (BOOLEAN)
+└── created_at
 
 notifications
 ├── notification_id (PK)
