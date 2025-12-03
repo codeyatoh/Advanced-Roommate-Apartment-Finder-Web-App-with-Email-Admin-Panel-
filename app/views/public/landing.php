@@ -31,7 +31,9 @@
         <!-- Navbar -->
         <nav class="navbar">
             <div class="navbar-container">
-                <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/public/landing.php" class="navbar-logo">RoomFinder</a>
+                <a href="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/app/views/public/landing.php" class="navbar-logo">
+                    <img src="/Advanced-Roommate-Apartment-Finder-Web-App-with-Email-Admin-Panel-/public/assets/images/logo.png" alt="RoomFinder" style="height: 5rem; width: auto;">
+                </a>
 
                 <div class="navbar-menu">
                     <ul class="navbar-links">
